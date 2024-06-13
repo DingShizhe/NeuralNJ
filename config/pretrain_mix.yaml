@@ -1,0 +1,50 @@
+num_epoch: 1000
+num_episodes: 10
+num_episodes_baseline: 50
+lr: 0.005
+clip_value: -1.0
+entropy_reg_strength: 2.0
+risk_epsilon: 0.5
+
+# replay_buffer_size: 32
+replay_buffer_size: 16
+replay_buffer_sample_size: 32
+
+replay_buffer_score_bound: 20
+
+ratio_factor: 0.5
+loss:
+  BALANCED_ELU_LOSS: True
+  ELU_LOSS: False
+
+# dataset_path: "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/fixed_len_data"
+# dataset_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PGPI/data_gen/fixed_len_data_taxa50_lenmix_2000"
+dataset_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PGPI/data_gen/fixed_len_data_randomlambda_taxa50_lenmix_2000"
+val_dataset_path: "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/fixed_len_data_test"
+# val_dataset_path: "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/datasete_real/filter_validation"
+# dataset_taxa_list: [20, 30, 50, 100]
+# dataset_taxa_list: [90, 100]
+dataset_taxa_list: [50]
+
+summary_name: "taxa50_lenmixed2320_randomlambda_Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_BalancedELU_dim32_lr0.005_woclip_decay0.98_margin0.5_patch4_bs4_RawTopo_BtmTopTraj"
+
+# summary_path: "tb_opt_model_20_rwd_fixed"
+summary_path: "tb_opt_model_taxa50_len_mixed"
+# summary_path: "NULL"
+# checkpoint_path: "checkpoints"
+
+# reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PGPI/checkpoints/20240204-093134Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_UnactionRatio_2K_attn3_lossBalanceELU_dim32_lr0.005_decay0.93_margin0.5_patch4_bs4/checkpoint_80.pt"
+
+
+env:
+  batch_size: 4
+  # BATCH_SIZE: 8
+  sequence_type: DNA_WITH_GAP
+
+model:
+  vocab_size: 4
+  patch_size: 2
+  fixed_length: 1024
+  embed_dim: 32
+  encoder_attn_layers: 2
+  num_enc_heads: 2

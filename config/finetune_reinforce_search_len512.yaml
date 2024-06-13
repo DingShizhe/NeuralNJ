@@ -1,0 +1,77 @@
+num_epoch: 1000
+num_episodes: 10
+num_episodes_baseline: 50
+lr: 0.001
+clip_value: 0.1
+entropy_reg_strength: 0.2
+risk_epsilon: 0.5
+
+
+
+# instance_path: "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/CSolver/raxml/fixed_len_data/len512/taxa30"
+# sequences_file: "G_l_512_n_30_0.0_0.08_0.phy"
+# raw_tree_file: ""
+# c_best_tree_file: "G_l_512_n_30_0.0_0.08_0.tre"
+
+
+# instance_path: "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/fixed_len_data/len256/taxa30"
+# sequences_file: "G_l_256_n_30_0.0_0.07_0.phy"
+# raw_tree_file: ""
+# c_best_tree_file: "G_l_256_n_30_0.0_0.07_0.tre"
+
+
+# instance_path: "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/CSolver/raxml/fixed_len_data_test/len256/taxa100"
+instance_path: "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/CSolver/raxml/fixed_len_data_test/len512/taxa100"
+# sequences_file: "G_l_1024_n_20_0.0_0.04_0.phy"
+# raw_tree_file: "G_l_1024_n_20_0.0_0.04_0_raw.tre"
+# c_best_tree_file: "G_l_1024_n_20_0.0_0.04_0.tre"
+
+
+# instance_path: "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/CSolver/fixed_len_data_n_30_100_test/len1000/taxa100"
+# sequences_file: "G_l_1000_n_100_0.0_0.05_0.phy"
+# raw_tree_file: "G_l_1000_n_100_0.0_0.05_0_raw.tre"
+# c_best_tree_file: "G_l_1000_n_100_0.0_0.05_0.tre"
+
+
+# instance_path: "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/datasete_real/CSolver/raxml/validation_data"
+# sequences_file: "0_PF00002.phy"
+# raw_tree_file: ""
+# c_best_tree_file: "0_PF00002.tre"
+
+
+# first worked pre-trained model
+# reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PGPI/checkpoints/20240204-093134Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_UnactionRatio_2K_attn3_lossBalanceELU_dim32_lr0.005_decay0.93_margin0.5_patch4_bs4/checkpoint_80.pt"
+# reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PhyloNet/checkpoints/20240403-170428Ctrain20_30_Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_BalancedELU_dim32head2_lr0.005_woclip_decay0.93_margin0.5_patch2_bs4_RawTopo_BtmTopTraj/checkpoint_74.pt"
+# reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PhyloNet/checkpoints/20240403-170517Ctrain20_30_Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_BalancedELU_dim32head2_lr0.005_woclip_decay0.93_margin0.5_patch4_bs4_RawTopo_BtmTopTraj/checkpoint_98.pt"
+#reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PGPI/checkpoints/20240318-013549Ctrain90_100_Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_BalancedELU_ratio0.5_dim32_lr0.005_clip0.1_decay0.93_margin0.5_patch4_bs2_RawTopo/checkpoint_36.pt"
+#reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PhyloNet/checkpoints/20240405-214812TEST_Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_BalancedELU_dim32_lr0.005_woclip_decay0.93_margin0.5_patch2_bs4_RawTopo_BtmTopTraj_autoPatchNum/checkpoint_88.pt"
+# reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PhyloNet/checkpoints/20240402-161912Ctrain40_50_Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_BalancedELU_dim32_lr0.005_woclip_decay0.93_margin0.5_patch2_bs4_RawTopo_BtmTopTraj/checkpoint_94.pt"
+# reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PhyloNet/checkpoints/20240404-092128Ctrain30_40_Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_BalancedELU_dim32head2_lr0.005_woclip_decay0.93_margin0.5_patch4_bs4_RawTopo_BtmTopTraj/checkpoint_44.pt"
+# reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PhyloNet/checkpoints/20240404-092535Ctrain30_40_Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_BalancedELU_dim32head2_lr0.005_woclip_decay0.93_margin0.5_patch2_bs4_RawTopo_BtmTopTraj/checkpoint_52.pt"
+# reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PhyloNet/checkpoints/20240406-094345mixed_Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_BalancedELU_dim32_lr0.005_woclip_decay0.93_margin0.5_patch4_bs4_RawTopo_BtmTopTraj/checkpoint_46.pt"
+# reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PhyloNet/checkpoints/20240417-130546train50_len256_Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_BalancedELU_dim16head1_lr0.005_woclip_decay0.96_margin0.5_patch2_bs4_RawTopo_BtmTopTraj/checkpoint_184.pt"
+# reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PhyloNet/checkpoints/20240418-060829train50_len256_Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_BalancedELU_dim32head1_lr0.005_woclip_decay0.96_margin0.5_patch2_bs4_RawTopo_BtmTopTraj/checkpoint_90.pt"
+
+# reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PhyloNet/checkpoints/20240419-072945train50_lenmix_Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_BalancedELU_dim32head1_lr0.005_woclip_decay0.9_margin0.5_patch2_bs4_RawTopo_BtmTopTraj/checkpoint_30.pt"
+
+# reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PhyloNet/checkpoints/20240422-024940train20_lenmix_Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_BalancedELU_dim32head1_lr0.005_woclip_decay0.9_margin0.5_patch2_bs4_RawTopo_BtmTopTraj/checkpoint_84.pt"
+
+# reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PhyloNet/checkpoints/20240422-111907train20_aggattn_patchwise_mean/checkpoint_46.pt"
+# reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PhyloNet/checkpoints/20240424-141352train100_len512_Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_BalancedELU_dim32head1_lr0.005_woclip_decay0.96_margin0.5_patch2_bs4_RawTopo_BtmTopTraj/checkpoint_56.pt"
+reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PhyloNet/checkpoints/20240503-135822taxa50_lenmixed2000_Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_BalancedELU_dim32_lr0.005_woclip_decay0.93_margin0.5_patch4_bs4_RawTopo_BtmTopTraj/checkpoint_100.pt"
+
+
+# pretrained model with patch size = 2
+# reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PGPI/checkpoints/20240210-034619Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_UnactionRatio14_30_2K_attn3_lossBalanceELU_dim32_lr0.005_clip0.01_decay0.93_margin0.5_patch2_bs4/checkpoint_80.pt"
+
+env:
+  batch_size: 11
+  sequence_type: DNA_WITH_GAP
+
+model:
+  vocab_size: 4
+  patch_size: 2
+  fixed_length: 1024
+  embed_dim: 32
+  encoder_attn_layers: 2
+  num_enc_heads: 2

@@ -1,0 +1,51 @@
+num_epoch: 1000
+num_episodes: 10
+num_episodes_baseline: 50
+# num_episodes_baseline: 5
+# lr: 0.01
+lr: 0.001
+# clip_value: 0.1
+entropy_reg_strength: 0.2
+# entropy_reg_strength: 0.05
+risk_epsilon: 0.5
+# risk_epsilon: 2.0
+
+
+checkpoint_path: "tb_finetune_loss"
+
+
+
+# instance_path: "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/CSolver/raxml/fixed_len_data/len512/taxa30"
+# sequences_file: "G_l_512_n_30_0.0_0.08_0.phy"
+# raw_tree_file: ""
+# c_best_tree_file: "G_l_512_n_30_0.0_0.08_0.tre"
+
+
+# instance_path: "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/fixed_len_data/len256/taxa30"
+# sequences_file: "G_l_256_n_30_0.0_0.07_0.phy"
+# raw_tree_file: ""
+# c_best_tree_file: "G_l_256_n_30_0.0_0.07_0.tre"
+
+
+instance_path: "/home/dingshizhe/PhyloNet_bak/data_gen/CSolver/raxml/fixed_len_data_test/len1024/taxa100"
+sequences_file: "G_l_1024_n_100_0.0_0.08_90.phy"
+raw_tree_file: "G_l_1024_n_100_0.0_0.08_90.tre"
+c_best_tree_file: "G_l_1024_n_100_0.0_0.08_90.tre"
+
+
+reload_checkpoint_path: "/home/dingshizhe/NeuralNJ/checkpoint/checkpoint_100.pt"
+
+
+env:
+  # batch_size: 4
+  batch_size: 8
+  # BATCH_SIZE: 8
+  sequence_type: DNA_WITH_GAP
+
+model:
+  vocab_size: 4
+  patch_size: 2
+  fixed_length: 1024
+  embed_dim: 32
+  encoder_attn_layers: 2
+  num_enc_heads: 2
