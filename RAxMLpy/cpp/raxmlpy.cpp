@@ -1519,23 +1519,18 @@ void init_part_info_dsz(RaxmlInstance& instance)
 
 
 
-
-
-
-
-
 int argc = 15;
 char *argv[15] = {
     "./raxml-ng",
     "--evaluate",
     "--msa",
-    "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/raxmlpy/test/G_l_1000_n_40_0.0_0.09_24.phy",
+    "xxxx.phy",
     "--threads",
     "1",
     "--model",
     "JC",
     "--tree",
-    "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/raxmlpy/test/G_l_1000_n_40_0.0_0.09_24.tre",
+    "xxxx.tre",
     "--prefix",
     "xxx",
     "--redo",

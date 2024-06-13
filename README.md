@@ -18,12 +18,19 @@ Activate the environment with:
 conda activate NeuralNJ
 ```
 
+## Third-Party Dependencies
+
+- [IQTree](http://www.iqtree.org/): A tool for simulating evolutionary processes and generating MSA.
+- [RAxML](https://cme.h-its.org/exelixis/web/software/raxml/): A solver for phylogenetic inference.
+
+
 ## Generating Synthetic Data
 
 To generate synthetic data with MSA lengths from 128 to 1024 and 50 species, navigate to the `data_gen` directory and run:
 
 ```bash
 cd data_gen/
+# Make sure to set the `excuting_dir` variable in `generate.py` to the path of the IQTree executable
 python generate.py
 ```
 

@@ -694,7 +694,6 @@ def Search_inference(test_file_path, write_dir,write_file_name):
     # 0-31, 32-63, 64-95, 96-127
     # low_num = 0
     # high_num = 128
-    # write_dir = f"/home/dingshizhe/iclr_2024_phylogfn_suppl/PhyloNet/search/"
     # write_file_name = f"onlysearch{STOP_TIME}_bs{cfgs.env.batch_size}_temp1_train100_len256_dim{cfgs.model.embed_dim}_patch{cfgs.model.patch_size}_{test_file_name[0]}_{test_file_name[1]}_{test_file_name[2]}.csv"
     # files = [file for file in files if int(file[:-4].split('_')[-1]) <= high_num and int(file[:-4].split('_')[-1]) >= low_num]
     # files = [file for file in files]
@@ -817,7 +816,7 @@ if __name__ == "__main__":
 
     test_file_path = test_file_dir
     test_file_name = test_file_path.split('/')[-3:]
-    write_dir =  f"/home/dingshizhe/PhyloNet/search/realdata/{cfgs.infer_opt}_realdata_{custom_tag}_dim{cfgs.model.embed_dim}_patch{cfgs.model.patch_size}/"
+    write_dir =  f"search/realdata/{cfgs.infer_opt}_realdata_{custom_tag}_dim{cfgs.model.embed_dim}_patch{cfgs.model.patch_size}/"
     write_file_name = f"{cfgs.infer_opt}_bs{cfgs.env.batch_size}_{test_file_name[0]}_{test_file_name[1]}_{test_file_name[2]}.csv"
 
     if cfgs.infer_opt == "Argmax":

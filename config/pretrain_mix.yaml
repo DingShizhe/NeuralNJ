@@ -17,11 +17,8 @@ loss:
   BALANCED_ELU_LOSS: True
   ELU_LOSS: False
 
-# dataset_path: "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/fixed_len_data"
-# dataset_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PGPI/data_gen/fixed_len_data_taxa50_lenmix_2000"
-dataset_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PGPI/data_gen/fixed_len_data_randomlambda_taxa50_lenmix_2000"
-val_dataset_path: "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/fixed_len_data_test"
-# val_dataset_path: "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/datasete_real/filter_validation"
+dataset_path: "data_gen/fixed_len_data_randomlambda_taxa50_lenmix_2000"
+val_dataset_path: "fixed_len_data_test"
 # dataset_taxa_list: [20, 30, 50, 100]
 # dataset_taxa_list: [90, 100]
 dataset_taxa_list: [50]
@@ -33,7 +30,7 @@ summary_path: "tb_opt_model_taxa50_len_mixed"
 # summary_path: "NULL"
 # checkpoint_path: "checkpoints"
 
-# reload_checkpoint_path: "/mnt/data/dingshizhe/iclr_2024_phylogfn_suppl/PGPI/checkpoints/20240204-093134Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_UnactionRatio_2K_attn3_lossBalanceELU_dim32_lr0.005_decay0.93_margin0.5_patch4_bs4/checkpoint_80.pt"
+# reload_checkpoint_path: "checkpoints/20240204-093134Highway_FuseAttnXRest_real_NoNorm_hgWoMeanWoMLP_EncAttnl2_l4_sharedAGG_UnactionRatio_2K_attn3_lossBalanceELU_dim32_lr0.005_decay0.93_margin0.5_patch4_bs4/checkpoint_80.pt"
 
 
 env:

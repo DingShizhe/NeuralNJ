@@ -2,11 +2,11 @@ import os
 import subprocess
 import time
 
-excuting_dir = "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/raxml-ng/build/bin/raxml-ng"
+excuting_dir = "raxml-ng/build/bin/raxml-ng"
 evo_model = "JC"
-# source_dir = "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/fixed_len_128_data_n_30_100_8K"
-source_dir = "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/fixed_len_data_randomlambda_taxa50_lenmix_2000"
-output_dir = "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/CSolver/fixed_len_data_randomlambda_taxa50_lenmix_2000"
+# source_dir = "data_gen/fixed_len_128_data_n_30_100_8K"
+source_dir = "data_gen/fixed_len_data_randomlambda_taxa50_lenmix_2000"
+output_dir = "data_gen/CSolver/fixed_len_data_randomlambda_taxa50_lenmix_2000"
 
 # taxanum = 110
 length_list = [i for i in range(128, 1024+1, 32)]
@@ -43,7 +43,7 @@ def command_raxml(msa_path):
 #         # 这里添加你的逻辑来处理输出和计算似然值等
 #         print(f"File: {phy_file}, Execution Time: {execution_time}s")
 #         # 注意: --your-options-here 需要替换为你的实际 PhyML 或 RAxML 选项
-#msa_path = "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/CSolver/G_l_1000_n_40_0.0_0.01_0.phy"
+#msa_path = "data_gen/CSolver/G_l_1000_n_40_0.0_0.01_0.phy"
 
 #command_raxml(msa_path)
 

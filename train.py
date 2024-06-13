@@ -287,8 +287,8 @@ def train(cfgs):
 
     env = PhyInferEnv(cfgs, device)
 
-    train_path = cfgs.dataset_path #"/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/fixed_len_data_n_30_100" #cfgs.pretrain_dataset_path
-    val_path = cfgs.val_dataset_path #"/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/fixed_len_data_n_30_100_test"#cfgs.pretrain_dataset_path
+    train_path = cfgs.dataset_path
+    val_path = cfgs.val_dataset_path
     trajectory_num = 1 #cfgs.ENV.TRAJECTORY_NUM
     taxa_list = cfgs.dataset_taxa_list
     len_list = cfgs.dataset_len_list

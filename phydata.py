@@ -1181,14 +1181,12 @@ def load_pi_instance(file_path):
 
 if __name__ == "__main__":
 
-    # root_dir = "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/data"
-    # output_dir = "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/preprocess"
     # preprocess_data(root_dir,output_dir)
 
     batch_size = 32  # 根据需要设置批处理大小
     device=torch.device("cuda:2")
-    val_path = "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/fixed_len_data"
-    #dataset = PhyDataset('/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/data', trajectory_num=2, device="cpu")
+    val_path = "data_gen/fixed_len_data"
+    #dataset = PhyDataset('data_gen/data', trajectory_num=2, device="cpu")
     dataset = PhyDataset(val_path, trajectory_num=1, device=device, num_per_file=1024, taxa_list=[100], C_solved=False)
     sampler = PhySampler(dataset, batch_size)
     data_loader = torch.utils.data.DataLoader(dataset, batch_sampler=sampler, collate_fn=custom_collate_fn, num_workers=0)

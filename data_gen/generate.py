@@ -13,8 +13,8 @@ TEST = False
 FIX_LEN = True
 FIX_LEN_TEST = False
 
-output_dir = "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/fixed_len_data_randomlambda_taxa50_lenmix_2000"
-excuting_dir = "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/iqtree-2.2.2.6-Linux/bin/iqtree2"
+output_dir = "data_gen/fixed_len_data_randomlambda_taxa50_lenmix_2000"
+excuting_dir = "iqtree-2.2.2.6-Linux/bin/iqtree2"
 evo_model = "JC"
 # selected_species = [20, 30, 40, 50, 100, 200] # 同上
 selected_species = [50]

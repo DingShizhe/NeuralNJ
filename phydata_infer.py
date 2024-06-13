@@ -657,13 +657,11 @@ def custom_collate_fn(batch):
 
 if __name__ == "__main__":
 
-    # root_dir = "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/data"
-    # output_dir = "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/data_gen/preprocess"
     # preprocess_data(root_dir,output_dir)
 
     batch_size = 1  # 根据需要设置批处理大小
     device=torch.device("cuda:3")
-    val_path = "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/PGPI/datasete_real/CSolver/raxml/validation_data"
+    val_path = "datasete_real/CSolver/raxml/validation_data"
     dataset = PhyDataset_infer(val_path, device=device, pos=2)
     data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, collate_fn=custom_infer_collate_fn, num_workers=0)
 
