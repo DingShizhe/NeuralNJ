@@ -52,6 +52,10 @@ def empty_config():
 
     cfgs.ratio_factor = 1.0
 
+    cfgs.infer_opt = "Argmax"
+    # cfgs.infer_opt = "Search"
+    # cfgs.infer_opt = "Reinforced"
+
     return cfgs
 
 

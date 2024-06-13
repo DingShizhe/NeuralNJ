@@ -1,4 +1,4 @@
-name: PGPI
+name: NeuralNJ
 channels:
   - pytorch
   - nvidia
@@ -243,7 +243,6 @@ dependencies:
       - psutil==5.9.8
       - python-dateutil==2.9.0.post0
       - pytz==2024.1
-      - raxmlpy==0.1
       - requests==2.31.0
       - scikit-bio==0.6.0
       - scipy==1.13.0
