@@ -8,8 +8,6 @@ import numpy as np
 import raxmlpy as pllpy
 import torch
 
-import re
-
 CHARACTERS_MAPS = {
     "DNA": {
         "A": [1.0, 0.0, 0.0, 0.0],
@@ -42,6 +40,9 @@ CHARACTERS_MAPS = {
         "N": [1.0, 1.0, 1.0, 1.0],
     },
 }
+
+evolution_model = 'GTR+I+G'
+# evolution_model = 'JC'
 
 
 class PhyloTree(object):
@@ -121,9 +122,6 @@ class PhyloTree(object):
         new_tree_str = "\n".join(data) + "\n"
         return new_tree_str
 
-    # def build_felsenstein_representation(self):
-    #     self.root_seq = (self.left_tree_data['tree'].root_seq + self.right_tree_data['tree'].root_seq) / 2.0
-
     def postorder_traversal_internal(self):
         """
         perform post order traversal over the tree, return the internal nodes
@@ -181,7 +179,6 @@ class PhyloTree(object):
                 )
                 tree_edge_lengths[(l_str, r_str)] = total_edge_length
                 tree_edge_lengths[(r_str, l_str)] = total_edge_length
-                # remove the old parent-child entry in the dict, because its no longer exist
                 del tree_edge_lengths[(l_str, node_str)]
                 del tree_edge_lengths[(node_str, l_str)]
                 del tree_edge_lengths[(r_str, node_str)]
@@ -189,7 +186,6 @@ class PhyloTree(object):
             else:
                 pass
 
-        # return UnrootedPhyloTree(nx_graph, tree_edge_lengths, self.log_score, self.left_tree_data, self.right_tree_data)
         seq_indices = sorted(
             self.left_tree_data["tree"].seq_indices
             + self.right_tree_data["tree"].seq_indices
@@ -204,7 +200,6 @@ class PhyloTree(object):
         )
 
 
-# zxr add
 class UnrootedPhyloTree(object):
     def __init__(
         self,
@@ -222,12 +217,10 @@ class UnrootedPhyloTree(object):
         self.seq_indices = seq_indices
 
         self.topo_repr = format_rtree_topology(self, True, None)
+        import pdb; pdb.set_trace
         self.name = name
 
     def sample_trajectory(self):
-
-        # new_trees = sorted(new_trees, key=lambda x: x.min_seq_index)
-
         current_subtrees = [self.left_tree_data["tree"], self.right_tree_data["tree"]]
         current_subtrees = sorted(current_subtrees, key=lambda x: x.min_seq_index)
         actions = [[0, 1]]
@@ -268,16 +261,10 @@ class UnrootedPhyloTree(object):
 
 
 def format_rtree_topology(tree, at_root=False, sequence_keys=None):
-
-    # assert sequence_keys is not None
-
-    # b = branch_length if branch_length is not None else 0.12345
-
     if tree.left_tree_data is None:
         assert len(tree.seq_indices) == 1
         k = sequence_keys[tree.seq_indices[0]] if sequence_keys else tree.seq_indices[0]
         return f"{k}"
-
     left_tree = tree.left_tree_data["tree"]
     right_tree = tree.right_tree_data["tree"]
 
@@ -384,7 +371,7 @@ def process_(args):
     }
 
     utree_op_str, log_score_pre, log_score_op = pllpy.optimize_brlen(
-        rtree_str, tree_msa, is_root=True, iters=3
+        rtree_str, tree_msa, is_root=True, iters=3, model=evolution_model, opt_model=False
     )
     utree_op_tuple = pllpy.treestr_to_tuples(utree_op_str)
     rtree_op_tuple = pllpy.utree2rtree_guided(utree_op_tuple, rtree)
@@ -399,7 +386,7 @@ def get_logscore_from_tree_str(args):
         "sequences": [sequences[seq_ii] for seq_ii in seq_indices],
     }
     utree_op_str, log_score_pre, log_score_op = pllpy.optimize_brlen(
-        rtree_str, tree_msa, is_root=True, iters=3
+        rtree_str, tree_msa, is_root=True, iters=3, model=evolution_model, opt_model=False
     )
     return log_score_op
 
@@ -447,7 +434,7 @@ def compute_raw_tree_log_score(env, rtree_str_batch, parallel=False):
             }
 
             utree_op_str, log_score_pre, log_score_op = pllpy.optimize_brlen(
-                rtree_str, tree_msa, is_root=True, iters=3
+                rtree_str, tree_msa, is_root=True, iters=3, model=evolution_model, opt_model=False
             )
             log_scores_op.append(log_score_op)
 
@@ -479,24 +466,6 @@ class PhyInferEnv(object):
         self.states = []
 
         for batch_id in range(self.batch_size):
-
-            # import pdb; pdb.set_trace()
-
-            # pattern = r'^([a-zA-Z]+)([0-9]+)$'
-            # match = re.match(pattern, self.seq_keys[batch_id][0])
-            # prefix = match.group(1)
-
-            # if prefix == "Sp":
-            #     expected_keys = ["%s%03d" % (prefix, i) for i in range(len(self.seq_keys[batch_id]))]
-            #     expected_keys = expected_keys[1:] + [expected_keys[0]]
-            # else:
-            #     expected_keys = [f"{prefix}{i+1}" for i in range(len(self.seq_keys[batch_id]))]
-
-            # try:
-            #     assert self.seq_keys[batch_id] == expected_keys
-            # except:
-            #     import pdb; pdb.set_trace()
-
             phylo_trees = [
                 PhyloTree(
                     at_root=False,
@@ -533,11 +502,9 @@ class PhyInferEnv(object):
             self.batch_action_set_step = []
 
     def build_mom_map(self, node, mom_map, parent=None):
-        # 如果当前节点不是根节点，则将其添加到映射中
         if parent is not None:
             mom_map[node.id] = parent.id
 
-        # 如果当前节点不是叶子节点，则递归遍历其孩子节点
         if not node.is_terminal():
             for child in node.clades:
                 self.build_mom_map(child, mom_map, node)
@@ -654,8 +621,6 @@ class PhyInferEnv(object):
         )
         return new_tree, (i, j), unrooted
 
-        # new_trees_constructed.append(new_tree)
-
 
     def optimize_branch_length_parallel(self, new_trees):
         """并行优化树"""
@@ -668,7 +633,6 @@ class PhyInferEnv(object):
             )
             for idx, new_tree in enumerate(new_trees)
         ]
-
         with Pool(8) as pool:
             results = pool.map(process_, args_list)
 
@@ -696,7 +660,7 @@ class PhyInferEnv(object):
             }
 
             utree_op_str, _, log_score_op = pllpy.optimize_brlen(
-                rtree_str, tree_msa, is_root=True, iters=3
+                rtree_str, tree_msa, is_root=True, iters=3, model=evolution_model, opt_model=False
             )
             utree_op_tuple = pllpy.treestr_to_tuples(utree_op_str)
             rtree_op_tuple = pllpy.utree2rtree_guided(utree_op_tuple, rtree)
@@ -841,14 +805,11 @@ class PhyInferEnv(object):
                     -1, -1, self.state_tensor.size(2)
                 )
 
-            # import pdb; pdb.set_trace()
             subtree_i = torch.gather(self.state_tensor, 1, ii)
             subtree_j = torch.gather(self.state_tensor, 1, jj)
 
-            # import pdb; pdb.set_trace()
 
             if agent is None:
-                # assert False
                 new_subtree = (subtree_i + subtree_j) / 2
             else:
                 new_subtree = agent.aggregate(
@@ -901,11 +862,23 @@ class PhyInferEnv(object):
                     self.states[best_idx].subtrees[0].utree_op_str,
                 )
             except:
-                import pdb
-
-                pdb.set_trace()
+                import pdb; pdb.set_trace()
 
     def _seq2array(self, seq):
         seq = [self.chars_dict[x] for x in seq]
         data = np.array(seq)
         return data
+
+    def get_current_trees(self):
+        current_trees = []
+        for state in self.states:
+            subtrees = state.subtrees
+            
+            tree_strings = []
+            for tree in subtrees:
+                tree_str = format_rtree_topology(tree, at_root=True, sequence_keys=None)
+                tree_strings.append(tree_str)
+                
+            current_trees.append(tree_strings)
+        
+        return current_trees
