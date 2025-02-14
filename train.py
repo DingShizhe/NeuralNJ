@@ -65,7 +65,6 @@ def supervise_rollout(batch, agent, env, eval=False, pretrained=True, action_set
     # batch_distances = batch_distances.to(device)
     # batch_distances = batch_distances / 1024.0
 
-    # import pdb; pdb.set_trace()
 
     batch_array_one_hot = batch_array 
     batch_trees = batch['trees']
@@ -92,15 +91,14 @@ def supervise_rollout(batch, agent, env, eval=False, pretrained=True, action_set
             if eval:
                 agent.eval()
                 with torch.no_grad():
-                    env.state_tensor = agent.encode_zxr(env.init_state_tensor)
+                    env.state_tensor = agent.encode_zxr(env.init_state_tensor, batch_seq_mask)
             else:
                 # import pdb; pdb.set_trace()
-                env.state_tensor = agent.encode_zxr(env.init_state_tensor)
+                env.state_tensor = agent.encode_zxr(env.init_state_tensor, batch_seq_mask)
 
         # import pdb; pdb.set_trace()
         batch_size, nb_seq = env.state_tensor.shape[:2]
 
-        # 根据模式设置agent状态
         if eval:
             agent.eval()
             torch.set_grad_enabled(False)
@@ -123,7 +121,6 @@ def supervise_rollout(batch, agent, env, eval=False, pretrained=True, action_set
                 actions_ij_cur_step = batch_action[:, 0, step]
             except Exception as e:
                 print(f"Error: {e}")
-                # 这里可以处理错误或使用pdb.set_trace()
             actions_cur_step = [env.action_indices_dict[nb_seq][(ai.item(), aj.item())] for ai, aj in actions_ij_cur_step]
             actions_cur_step = torch.from_numpy(np.array(actions_cur_step)).to(device)
             actions = actions_cur_step
@@ -131,7 +128,6 @@ def supervise_rollout(batch, agent, env, eval=False, pretrained=True, action_set
             if action_set:
                 actions_set_cur_step, actions_complement_set_cur_step, actions_set_cur_step_mask, actions_complement_set_cur_step_mask, actions_set_list_cur_step = prepare_action_sets(batch_action_set, actions, nb_seq, env, step, device)
 
-        # 恢复torch.no_grad()之前的设置
         torch.set_grad_enabled(True)
 
         edge_actions = [(None, None) for _ in range(batch_size)]
@@ -205,9 +201,9 @@ def reinforce_rollout(batch, agent, env, eval=False):
             if eval:
                 agent.eval()
                 with torch.no_grad():
-                    env.state_tensor = agent.encode_zxr(env.init_state_tensor)
+                    env.state_tensor = agent.encode_zxr(env.init_state_tensor, batch_seq_mask)
             else:
-                env.state_tensor = agent.encode_zxr(env.init_state_tensor)
+                env.state_tensor = agent.encode_zxr(env.init_state_tensor, batch_seq_mask)
 
         batch_size, nb_seq = env.state_tensor.shape[:2]
 
@@ -236,7 +232,6 @@ def reinforce_rollout(batch, agent, env, eval=False):
 
         logits = ret['logits']
         log_p = torch.log_softmax(logits, dim=1)
-        # import pdb; pdb.set_trace()
         # actions = Categorical(logits=log_p).sample()
 
         if eval:
@@ -249,7 +244,7 @@ def reinforce_rollout(batch, agent, env, eval=False):
         actions_ij_prev = [env.tree_pairs_dict[nb_seq][a.item()] for a in actions]
         actions_ij_prev = torch.from_numpy(np.array(actions_ij_prev)).to(device).to(torch.int32)
 
-                # actions_set_cur_step = torch.from_numpy(np.array(actions_set_cur_step)).to(device)
+        # actions_set_cur_step = torch.from_numpy(np.array(actions_set_cur_step)).to(device)
         edge_actions = [(None, None) for _ in range(batch_size)]
 
         done = env.step(actions, edge_actions, branch_optimize=True, agent=agent)
@@ -305,17 +300,17 @@ def train(cfgs):
 
     data_loader = torch.utils.data.DataLoader(dataset, batch_sampler=sampler, collate_fn=custom_collate_fn, num_workers=2)
 
-    train_val_sample_val = PhySampler(dataset_train_val, batch_size * 2, shuffle=False)
+    train_val_sample_val = PhySampler(dataset_train_val, batch_size, shuffle=False)
     data_loader_train_val = torch.utils.data.DataLoader(dataset_train_val, batch_sampler=train_val_sample_val, collate_fn=custom_collate_fn, num_workers=2)
-    val_sample_val1 = PhySampler(dataset_val1, batch_size * 2, shuffle=False)
+    val_sample_val1 = PhySampler(dataset_val1, batch_size, shuffle=False)
     data_loader_val1 = torch.utils.data.DataLoader(dataset_val1, batch_sampler=val_sample_val1, collate_fn=custom_collate_fn, num_workers=2)
-    val_sample_val2 = PhySampler(dataset_val2, batch_size * 2, shuffle=False)
+    val_sample_val2 = PhySampler(dataset_val2, batch_size , shuffle=False)
     data_loader_val2 = torch.utils.data.DataLoader(dataset_val2, batch_sampler=val_sample_val2, collate_fn=custom_collate_fn, num_workers=2)
-    val_sample_val3 = PhySampler(dataset_val3, 2, shuffle=False)
+    val_sample_val3 = PhySampler(dataset_val3, 1, shuffle=False)
     data_loader_val3 = torch.utils.data.DataLoader(dataset_val3, batch_sampler=val_sample_val3, collate_fn=custom_collate_fn, num_workers=2)
-    val_sample_val4 = PhySampler(dataset_val4, batch_size * 2, shuffle=False)
+    val_sample_val4 = PhySampler(dataset_val4, batch_size , shuffle=False)
     data_loader_val4 = torch.utils.data.DataLoader(dataset_val4, batch_sampler=val_sample_val4, collate_fn=custom_collate_fn, num_workers=2)
-    val_sample_val5 = PhySampler(dataset_val5, 2 , shuffle=False)
+    val_sample_val5 = PhySampler(dataset_val5, 1 , shuffle=False)
     data_loader_val5 = torch.utils.data.DataLoader(dataset_val5, batch_sampler=val_sample_val5, collate_fn=custom_collate_fn, num_workers=2)
 
     BALANCED_ELU_LOSS = cfgs.loss.BALANCED_ELU_LOSS
@@ -331,7 +326,7 @@ def train(cfgs):
         optimizer = optim.Adam(PGPI_pretrained.parameters(), lr=cfgs.lr)
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.93)
-        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.96)
+        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.98)
         # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
         accumulated_steps = checkpoint['accumulated_steps']
         epoch_now = checkpoint['epoch']
@@ -339,7 +334,7 @@ def train(cfgs):
     else:
         PGPI_pretrained = PGPI(cfgs).to(device)
         optimizer = optim.Adam(PGPI_pretrained.parameters(), lr=cfgs.lr)
-        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.93)
+        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.98)
         # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.96)
         # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
         accumulated_steps = 0
@@ -471,17 +466,11 @@ def train(cfgs):
             if debug:
                 import pdb; pdb.set_trace()
 
-            # loss_fn = nn.MSELoss()
-            # Distances_Loss = loss_fn(distances, batch_distances)
-
-            # import pdb; pdb.set_trace()
 
             policy_loss = Policy_loss/len(logitss)
 
-            # loss = policy_loss + 0.1 * policy_loss_norm
             loss = policy_loss
-            # loss = Distances_Loss
-            # loss = Policy_loss_select_log
+
             loss.backward()
 
             if cfgs.clip_value != -1.0:
@@ -502,7 +491,6 @@ def train(cfgs):
 
 
             if accumulated_steps % 128 == 0:
-            # if False:
                 PGPI_pretrained.eval()
 
                 def eval_on_dataset(dataset_tag="test", ref_scores_dict=None):
@@ -541,8 +529,6 @@ def train(cfgs):
                             print(f"Val data: {len(batch['data'][0][0])}\t seq_keys: {len(batch['seq_keys'][0])}")
 
                             if first_val_flag:
-
-                                # logitss, actions_sets_list, actions_set_masks, actions_sets, actions_set_complement_masks, actions_sets_complement, selected_log_ps_ref, scores_ref, _ = supervise_rollout(batch, PGPI_pretrained, env, eval=True, pretrained=True, branch_optimize=True)
                                 _, _, _, _, _, _, _, _scores_ref, best_tree = supervise_rollout(batch, PGPI_pretrained, env, eval=True, pretrained=True, branch_optimize=True)
 
                                 ref_scores_dict[dataset_tag] = ref_scores_dict.get(dataset_tag, []) + [_scores_ref]
@@ -577,21 +563,19 @@ def train(cfgs):
 
 
                 # eval_on_dataset("test", ref_scores_dict)
-                eval_on_dataset("taxa20", ref_scores_dict)
+                # eval_on_dataset("taxa20", ref_scores_dict)
                 eval_on_dataset("taxa50", ref_scores_dict)
-                eval_on_dataset("taxa100", ref_scores_dict)
-                eval_on_dataset("len256", ref_scores_dict)
-                eval_on_dataset("len512", ref_scores_dict)
-                eval_on_dataset("train", ref_scores_dict)
+                # eval_on_dataset("taxa100", ref_scores_dict)
+                # eval_on_dataset("len256", ref_scores_dict)
+                # eval_on_dataset("len512", ref_scores_dict)
+                # eval_on_dataset("train", ref_scores_dict)
 
                 first_val_flag = False
 
             accumulated_steps += 1
 
 
-        # 根据验证集损失更新学习率
         scheduler.step()
-        # 保存模型
 
         if epoch % 2 == 0:
 

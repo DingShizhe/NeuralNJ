@@ -1,6 +1,6 @@
 # NeuralNJ
 
-Code implementation for "Neural Neighbor Join for Accurate Molecular Phylogenetic Inference".
+Code implementation for "Accurate and efficient phylogenetic inference through end-to-end deep learning".
 
 ## Environment Setup
 
@@ -36,34 +36,36 @@ python generate.py
 
 ## Real Data
 
-For real data, refer to the work described in the article [Harnessing machine learning to guide phylogenetic-tree search algorithms](https://osf.io/b8aqj/).
+For real data, refer to the work described in the article [Evaluating Fast Maximum Likelihood-Based Phylogenetic Programs Using Empirical Phylogenomic Data Sets](https://doi.org/10.1093/molbev/msx302).
 
 ## Training
 
-To train the model using real data, use the following command:
-
-```bash
-python train.py --config_path config/pretrain_real.yaml
-```
-
-To train the model using synthetic data, use the following command:
+To train the model using synthetic data under the evolution model GTR+I+G, use the following command:
 
 ```bash
 python train.py --config_path config/pretrain_mix.yaml
 ```
 
-## Reinforced Search
+## Inference
 
-To perform reinforced search, run:
-
-```bash
-python finetune_rl_search.py --config_path config/finetune_reinforce_search.yaml
-```
-
-## Direct Inference
-
-To perform direct inference, modify the `infer_opt` option in `finetune_reinforce_search.yaml` to either "Argmax" or "Search", and then run:
+To perform inference for NeuralNJ, run:
 
 ```bash
-python finetune_rl_search.py --config_path config/finetune_reinforce_search.yaml
+python finetune_rl_search.py --config ./config/finetune_reinforce_search_example.yaml --infer_opt Argmax
 ```
+
+```bash
+python finetune_rl_search.py --config ./config/finetune_reinforce_search_example.yaml --infer_opt Search
+```
+
+```bash
+python finetune_rl_search.py --config ./config/finetune_reinforce_search_example.yaml --infer_opt Reinforce
+```
+
+## Example Cases
+
+The example configuration file `./config/finetune_reinforce_search_example.yaml` uses test cases located in the `examples` folder. Specifically, two cases in `examples/len1024taxa50`:
+
+- `G_l_1024_n_50_0.0_0.08_58.phy`: Used in the phylogenetic analysis case study in the paper
+- `G_l_1024_n_50_0.0_0.08_19.phy`: Used in the topology construction process analysis
+

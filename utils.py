@@ -2,6 +2,7 @@ import pickle
 import torch
 import numpy as np
 from fvcore.common.config import CfgNode
+from ete3 import Tree
 
 def empty_config():
     cfgs = CfgNode()
@@ -47,18 +48,19 @@ def empty_config():
     cfgs.model.fixed_length = 1024
     cfgs.model.embed_dim = 32
     cfgs.model.encoder_attn_layers = 2
-    cfgs.model.num_enc_heads = 2
+    cfgs.model.num_enc_heads = 4
+    cfgs.model.num_enc_layers = 3
 
 
     cfgs.ratio_factor = 1.0
 
-    cfgs.infer_opt = "Argmax"
-    # cfgs.infer_opt = "Search"
-    # cfgs.infer_opt = "Reinforced"
-
     return cfgs
 
+evolution_model = "GTR+I+G"
 
+def set_evolution_model(model_name):
+    global evolution_model
+    evolution_model = model_name
 
 import random
 
@@ -75,18 +77,15 @@ class ReplayBuffer:
                 continue
 
             if len(self.trees) < self.replay_buffer_size:
-                # 如果缓冲区未满，直接添加
                 self.trees.append(tree)
                 self.scores.append(score)
             else:
-                # 如果缓冲区已满，替换分数最低的树
                 min_score_index = self.scores.index(min(self.scores))
                 if score > self.scores[min_score_index]:
                     self.trees[min_score_index] = tree
                     self.scores[min_score_index] = score
 
     def sample(self, sample_num):
-        # 随机选择 sample_num 个树
         if sample_num > len(self.trees):
             sample_num = len(self.trees)
         sampled_indices = random.sample(range(len(self.trees)), sample_num)
@@ -97,8 +96,8 @@ class ReplayBuffer:
         # if sampled_actions_list:
         #     import pdb; pdb.set_trace()
 
-        # return sampled_actions_list
         return None
+        # return sampled_actions_list
 
     def get_size(self):
         return len(self.trees)
@@ -156,27 +155,6 @@ class ReplayBufferDyn:
         return len(set([hash_function(tree) for tree in self.trees]))
 
 
-
-
-
-
-# if __name__ == "__main__":
-#     REPLAY_BUFFER_SIZE = 128
-#     # 使用示例
-#     replay_buffer = ReplayBuffer(REPLAY_BUFFER_SIZE)
-#     replay_buffer.add(list_of_trees, list_of_scores)
-#     sampled_trees = replay_buffer.sample(sample_num)
-
-
-# if __name__ == "__main__":
-#     REPLAY_BUFFER_SIZE = 128
-#     # 使用示例
-#     replay_buffer = ReplayBuffer(REPLAY_BUFFER_SIZE)
-#     replay_buffer.add(list_of_trees, list_of_scores)
-#     sampled_trees = replay_buffer.sample(sample_num)
-
-
-
 def read_fasta(filepath):
     all_seqs_dict = {}
     with open(filepath, 'r') as file:
@@ -215,15 +193,6 @@ def load_sequences(sequences_path):
         assert False
         return None, None
 
-    #     import pdb; pdb.set_trace()
-    # elif sequences_path.endswith('.pickle'):
-    #     dict_species_seq = pickle.load(open(sequences_path, 'rb'))
-    #     all_seqs = list(dict_species_seq.values())
-    # else:
-    #     all_seqs = pickle.load(open(sequences_path, 'rb'))
-
-    # # N for 'unknown' nucleotides that effective represent {A, C, G, U}
-    # all_seqs = [seq.upper().replace('?', 'N').replace('.', 'N') for seq in all_seqs]
 
 
 def pad_array_mask(L):
@@ -238,6 +207,7 @@ def pad_array_mask(L):
     L, L_mask = torch.from_numpy(L), torch.from_numpy(L_mask)
 
     return L, L_mask
+
 
 
 def get_score_indices_to_prev(actions_ij_prev, env, nb_seq, batch_size):
@@ -279,3 +249,18 @@ def get_score_indices_to_prev(actions_ij_prev, env, nb_seq, batch_size):
         score_indices_to_prev.append(indices)
 
     return score_indices_to_prev
+
+
+
+def calculate_rf_distance(file1, file2):
+    t1=Tree(file1)
+    # print(os.path.join(preds, tree.split('.tre')[0]+'.pf.nwk'))
+    t2=Tree(file2)
+    norm_rf_dist = t1.compare(t2,unrooted=True)['norm_rf']
+    rf = t1.compare(t2,unrooted=True)['rf']
+    return rf, norm_rf_dist
+
+def get_tree_str_from_newick(newick_file):
+    with open(newick_file, "r") as file:
+        tree_str = file.readline().strip()
+    return tree_str

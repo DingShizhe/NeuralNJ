@@ -3,10 +3,10 @@ import subprocess
 import time
 
 excuting_dir = "raxml-ng/build/bin/raxml-ng"
-evo_model = "JC"
+evo_model = "GTR+I+G"
 # source_dir = "data_gen/fixed_len_128_data_n_30_100_8K"
-source_dir = "data_gen/fixed_len_data_randomlambda_taxa50_lenmix_2000"
-output_dir = "data_gen/CSolver/fixed_len_data_randomlambda_taxa50_lenmix_2000"
+source_dir = "data_gen/fixed_len_data_randomlambda_taxa50_lenmix_2000_gtr+i+g"
+output_dir = "data_gen/CSolver/fixed_len_data_randomlambda_taxa50_lenmix_2000_gtr+i+g"
 
 # taxanum = 110
 length_list = [i for i in range(128, 1024+1, 32)]
@@ -24,6 +24,8 @@ def command_raxml(msa_path):
         "--threads", "8",
         "--prefix", f"{output_paht}",
         "--redo",
+        "--seed", "7788",
+        "--opt-model", "off"
     ]
 
     command_str = " ".join(command)
@@ -32,20 +34,8 @@ def command_raxml(msa_path):
         subprocess.run(command_str, shell=True, check=True)
         return True
     except subprocess.CalledProcessError as e:
-        print(f"generate_control 命令执行失败: {e}")
+        print(f"generate_control failed: {e}")
         return False
-
-
-# # 处理目录的函数
-# def process_directory(directory, exec_path):
-#     for phy_file in glob.glob(os.path.join(directory, '**', '*.phy'), recursive=True):
-#         execution_time, output = execute_command(f"{exec_path} --msa {phy_file} --your-options-here")
-#         # 这里添加你的逻辑来处理输出和计算似然值等
-#         print(f"File: {phy_file}, Execution Time: {execution_time}s")
-#         # 注意: --your-options-here 需要替换为你的实际 PhyML 或 RAxML 选项
-#msa_path = "data_gen/CSolver/G_l_1000_n_40_0.0_0.01_0.phy"
-
-#command_raxml(msa_path)
 
 # copy phy from data to CSolver
 def copy_phy_to_CSolver(taxanum=40, len=1000):
@@ -73,11 +63,11 @@ def copy_tre_to_CSolver(taxanum=40, len=1000):
     #     print(f"Folder '{CSolver_dir}' created.")
 
     for file in os.listdir(data_dir):
-        if file.endswith(".tre"):
+        if file.endswith("_raw.tre"):
             file_path = os.path.join(data_dir, file)
             # first copy the file as _raw.tre in data_dir, then copy _raw.tre to CSolver
-            file_prefix = file[:-4]
-            dis_file_path = f"{data_dir}/{file_prefix}_raw.tre"
+            file_prefix = file
+            dis_file_path = f"{data_dir}/{file_prefix}"
             subprocess.run(f"cp {file_path} {dis_file_path}", shell=True, check=True)
             subprocess.run(f"cp {dis_file_path} {CSolver_dir}", shell=True, check=True)
 

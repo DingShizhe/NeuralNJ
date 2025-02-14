@@ -5,40 +5,43 @@ import einops
 import math
 import os
 
-from transformer import SAB
+from msa_modules import AxialTransformerLayer
 
 
 class PhyloATTN(nn.Module):
-
     def __init__(self, cfgs):
         super().__init__()
 
         self.vocab_size = cfgs.model.vocab_size
         self.patch_size = cfgs.model.patch_size
-        # self.patch_num =  cfgs.model.fixed_length // self.patch_size
+        self.patch_num =  cfgs.model.fixed_length // self.patch_size
         self.embed_dim = cfgs.model.embed_dim
-        # print('embed_dim:', self.embed_dim)
         self.encoder_attn_layers = cfgs.model.encoder_attn_layers
         self.num_enc_heads = cfgs.model.num_enc_heads
 
-
-
+        self.num_enc_layers = cfgs.model.num_enc_layers
+        self.dropout = 0.4
         # Encoder layer
+        self.seq_emb_layers = nn.ModuleList(
+            [
+                AxialTransformerLayer(
+                    self.embed_dim,
+                    self.embed_dim * 4,
+                    self.num_enc_heads,
+                    self.dropout,
+                    self.dropout,
+                    self.dropout,
+                    1024
+                )
+                for _ in range(self.num_enc_layers)
+            ]
+        )
         self.embed = nn.Sequential(
             nn.Linear(self.vocab_size * self.patch_size, self.embed_dim),
             nn.GELU(),
             nn.Linear(self.embed_dim, self.embed_dim),
         )
 
-        self.attn = nn.Sequential(
-            *[SAB(
-                dim_in=self.embed_dim,
-                dim_out=self.embed_dim,
-                num_heads=self.num_enc_heads
-            )
-            for _ in range(self.encoder_attn_layers)]
-        )
-        # Encoder layer end
 
         # __________________aggregate layer__________________
         self.h_linear_last = nn.Linear(self.embed_dim, self.embed_dim)
@@ -61,7 +64,7 @@ class PhyloATTN(nn.Module):
         return list(self.parameters())
 
 
-    def encode_zxr(self, batch_input):
+    def encode_zxr(self, batch_input, batch_seq_mask=None):
         batch_input = batch_input.float()
 
         batch_size, num_rows, num_cols, embed_dim = batch_input.size()
@@ -70,15 +73,17 @@ class PhyloATTN(nn.Module):
 
         c = self.patch_num
 
-        x = einops.rearrange(batch_input, 'b r (c k) e -> (b c) r (k e)', k=self.patch_size)
-
-        # (b c) r (k e) -> (b c) r d
+        x = einops.rearrange(batch_input, 'b r (c k) e -> b r c (k e)', k=self.patch_size)
         x = self.embed(x)
 
-        # (b c) r d -> (b c) r d
-        x = self.attn(x)
+        batch_seq_mask_ = einops.repeat(batch_seq_mask[:,::self.patch_size], 'b s -> b n s', n=num_rows)
 
-        x = einops.rearrange(x, '(b c) r d -> b r c d', c=c)
+        x = einops.rearrange(x, 'b r c d -> r c b d')
+        for layer in self.seq_emb_layers:
+            x = layer(x, self_attn_padding_mask=batch_seq_mask_)
+        
+        # use col_attentions
+        x = einops.rearrange(x, 'r c b d -> b r c d')
 
         return x
 
@@ -87,7 +92,6 @@ class PhyloATTN(nn.Module):
         self.seq_mask = seq_mask
 
         x = self.aggregate(x_i, x_j, ij_indices)
-
         scores = self.s_out(x).squeeze(-1)
         scores = scores * seq_mask
         scores = scores.sum(-1)
@@ -97,17 +101,24 @@ class PhyloATTN(nn.Module):
 
     def aggregate(self, x_i, x_j, ij_indices, batchwise_ij_indices=False):
         seq_mask = self.seq_mask
+
         h = self.h_linear_last(x_i - x_j)
-        # # fusion on local representation
+
         z = torch.sigmoid(h)
-        x = (z * x_i + (1 - z) * x_j) # B N C D
+        x = (z * x_i + (1 - z) * x_j) # B R C D
+
+
         if self.batch_input.size(1) > 2:
             q = self.g_attn_q(x)
             k = self.g_attn_k(self.batch_input)
+            v = self.batch_input
+
             # r: subtrees num, n: ij pairs num
             # b n r
             alpha = torch.einsum('bncd,brcd->bnr', q, k) / math.sqrt(self.embed_dim * self.patch_num)
+
             i_indices, j_indices = ij_indices
+
             if batchwise_ij_indices:
                 b_indices = torch.arange(alpha.shape[0]).to(alpha.device)
                 alpha[b_indices, :, i_indices] += float('-inf')
@@ -131,10 +142,12 @@ class PhyloATTN(nn.Module):
                     alpha[b_indices, n_indices, j_indices] += float('-inf')
                 else:
                     assert False
+
             alpha = torch.softmax(alpha, dim=-1)
-            x_global_res = torch.einsum('bnr,brcd->bncd', alpha, self.batch_input)
+
+            x_global_res = torch.einsum('bnr,brcd->bncd', alpha, v)
+
             g = self.g_linear_last(x_global_res)
-            # g = self.g_linear_last(x - x_global_res)
 
             w = torch.sigmoid(g)
             x = (1 - w) * x + w * x_global_res
@@ -148,7 +161,6 @@ class PhyloATTN(nn.Module):
 
         actions_ij_prev, score_indices_to_prev, logits_prev = indices_to_prev_info
 
-        # change to T T T T ... F F F
         seq_mask = ~ batch_seq_mask[:, None, ::self.patch_size]
 
         self.batch_input = batch_input
@@ -161,7 +173,6 @@ class PhyloATTN(nn.Module):
             x_i = einops.repeat(x, 'b r c d -> b r x c d', x=num_rows)
             x_j = einops.repeat(x, 'b r c d -> b x r c d', x=num_rows)
 
-            # x = x_i - x_j
             row, col = torch.triu_indices(num_rows, num_rows, offset=1)
 
             x_i = x_i[:, row, col]
@@ -169,7 +180,6 @@ class PhyloATTN(nn.Module):
 
             scores = self.decode_gg(x_i, x_j, seq_mask, ij_indices=(row, col))
 
-            # scores = torch.softmax(scores, dim=-1)
 
         elif logits_prev is not None:
 
@@ -180,8 +190,6 @@ class PhyloATTN(nn.Module):
             new_scores_indices,_ = torch.sort(new_scores_indices, axis=-1)
             
             brange = torch.arange(batch_size).unsqueeze(1).to(batch_input.device)
-
-            # import pdb; pdb.set_trace()
 
             x_i = batch_input[brange, new_scores_indices[:,:,0], :, :]
             x_j = batch_input[brange, new_scores_indices[:,:,1], :, :]
@@ -196,7 +204,6 @@ class PhyloATTN(nn.Module):
         ret = {
             'logits': scores,
             'distance': scores
-            # 'mask': batch_padding_mask
         }
 
         return ret
