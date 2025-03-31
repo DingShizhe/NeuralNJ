@@ -21,7 +21,7 @@ The `build_plllibs` directory contains the necessary C dynamic libraries. To ens
 
 
 ```bash
-export LD_LIBRARY_PATH="$(pwd)/build_plllibs:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="$(pwd)/build_plllib:$LD_LIBRARY_PATH"
 export LD_LIBRARY_PATH="$(pwd)/build_raxmllib:$LD_LIBRARY_PATH"
 ```
 
