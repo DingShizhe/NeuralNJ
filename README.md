@@ -34,11 +34,15 @@ cd data_gen/
 python generate.py
 ```
 
+**Note: Pre-generated datasets under the GTR+G model used in the paper are provided in the `./data_gen/data` directory for training, validation, and testing.**
+
 ## Real Data
 
 For real data, refer to the work described in the article [Evaluating Fast Maximum Likelihood-Based Phylogenetic Programs Using Empirical Phylogenomic Data Sets](https://doi.org/10.1093/molbev/msx302).
 
 ## Training
+
+**To use the datasets provided in `./data_gen/data` for training or testing, please modify the data directory paths in the corresponding YAML configuration files.**
 
 To train the model using synthetic data under the evolution model GTR+I+G, use the following command:
 

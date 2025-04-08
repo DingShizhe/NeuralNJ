@@ -216,7 +216,7 @@ class PhyDataset(Dataset):
                                     break
 
                                 if C_solved:
-                                    raw_tre_path = file_path.replace('.phy', '_raw.tre')
+                                    raw_tre_path = file_path.replace('.phy', '.tre')
                                 else:
                                     raw_tre_path = ""
 
