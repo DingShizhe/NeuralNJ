@@ -1519,18 +1519,23 @@ void init_part_info_dsz(RaxmlInstance& instance)
 
 
 
+
+
+
+
+
 int argc = 15;
 char *argv[15] = {
     "./raxml-ng",
     "--evaluate",
     "--msa",
-    "xxxx.phy",
+    "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/raxmlpy/test/G_l_1000_n_40_0.0_0.09_24.phy",
     "--threads",
     "1",
     "--model",
-    "JC",
+    "GTR+I+G",
     "--tree",
-    "xxxx.tre",
+    "/home/dingshizhe/mnt/iclr_2024_phylogfn_suppl/raxmlpy/test/G_l_1000_n_40_0.0_0.09_24.tre",
     "--prefix",
     "xxx",
     "--redo",
@@ -1545,10 +1550,20 @@ void build_raxml_instance(
     const std::string &tree_str,
     const std::vector<std::string> &labels,
     const std::vector<std::string> &sequences,
-    bool tree_rooted
+    bool tree_rooted,
+    const std::string &model_config,
+    bool opt_model
 ) {
     auto& opts = instance.opts;
     CommandLineParser cmdline;
+
+    argv[7] = const_cast<char*>(model_config.c_str());
+
+    if (opt_model) {
+        argv[14] = "on";
+    } else {
+        argv[14] = "off";
+    }
 
     
     cmdline.parse_options(argc, ((char**) argv), opts);
@@ -1742,11 +1757,13 @@ double compute_llh(
     const std::string &tree_str,
     const std::vector<std::string> &labels,
     const std::vector<std::string> &sequences,
-    bool tree_rooted
+    bool tree_rooted,
+    const std::string &model_config,
+    bool opt_model
 ) {
     RaxmlInstance instance;
 
-    build_raxml_instance(instance, tree_str, labels, sequences, tree_rooted);
+    build_raxml_instance(instance, tree_str, labels, sequences, tree_rooted, model_config, opt_model);
 
     auto ret = thread_infer_ml_compute_llh(instance);
 
@@ -1800,11 +1817,14 @@ std::tuple<std::string, double, double> optimize_brlen(
     const std::vector<std::string> &labels,
     const std::vector<std::string> &sequences,
     bool tree_rooted,
-    int iters) {
+    int iters,
+    const std::string &model_config,
+    bool opt_model
+    ) {
 
     RaxmlInstance instance;
 
-    build_raxml_instance(instance, tree_str, labels, sequences, tree_rooted);
+    build_raxml_instance(instance, tree_str, labels, sequences, tree_rooted, model_config, opt_model);
 
     auto ret = thread_infer_ml_optimize_brlen(instance);
 
