@@ -25,7 +25,7 @@ import time
 import einops
 import raxmlpy
 
-from phydata import PhyDataset, PhySampler, custom_collate_fn, load_pi_instance, load_tree_file, load_phy_file_multirow, load_phy_file
+from phydata import PhySampler, custom_collate_fn, load_pi_instance, load_tree_file, load_phy_file_multirow, load_phy_file
 
 evolution_model = 'GTR+I+G'
 # evolution_model = 'JC'
