@@ -7,6 +7,16 @@
 
 ## Installation
 
+_Please use the same environment as NeuralNJ to compile and install RAxMLpy._
+
+First, install the compilation tools:
+
+```bash
+sudo apt install build-essential cmake
+sudo apt-get install autoconf automake libtool
+pip install pybind11
+```
+
 To install `raxmlpy`, use the following command:
 
 ```bash
@@ -21,7 +31,7 @@ The `build_plllibs` directory contains the necessary C dynamic libraries. To ens
 
 
 ```bash
-export LD_LIBRARY_PATH="$(pwd)/build_plllibs:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="$(pwd)/build_plllib:$LD_LIBRARY_PATH"
 export LD_LIBRARY_PATH="$(pwd)/build_raxmllib:$LD_LIBRARY_PATH"
 ```
 

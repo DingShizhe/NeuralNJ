@@ -11,45 +11,56 @@ import glob
 class CustomBuildExt(build_ext):
     def run(self):
         # 确保所需的第三方 C 库目录存在
-        c_lib_dir = './build_raxmllib'
-
-        if not os.path.exists(c_lib_dir):
-            os.makedirs(c_lib_dir)
 
         if True:
+            
+            if os.path.exists("pll-modules"):
+                shutil.rmtree("pll-modules")
 
-            subprocess.check_call(['git', 'clone', '--recursive', 'https://github.com/ddarriba/pll-modules', c_lib_dir])
+            subprocess.check_call(['git', 'clone', '--recursive', 'https://github.com/ddarriba/pll-modules'])
 
-            os.chdir(c_lib_dir)
+            os.chdir("pll-modules")
 
             subprocess.check_call(['./install-with-libpll.sh', 'install'])
             subprocess.check_call(['mkdir', "build"])
             os.chdir("build")
             subprocess.check_call(['cmake', "-DBUILD_PLLMODULES_SHARED=ON", ".."])
             subprocess.check_call(['make', "-j8"])
+
+            os.chdir('../../')
+
+        if True:
+
+            if os.path.exists('./raxml-ng'):
+                shutil.rmtree('./raxml-ng')
+
+            subprocess.check_call(['git', 'clone', '--recursive', 'https://github.com/amkozlov/raxml-ng.git'])
+
+            os.chdir("raxml-ng")
+
+            subprocess.check_call(['mkdir', "build"])
+            os.chdir("build")
+            subprocess.check_call(['cmake', "..", "-DBUILD_AS_LIBRARY=ON"])
+            subprocess.check_call(['make', "-j8"])
             
             os.chdir('../../')
 
+        raxml_lib_dir = './build_raxmllib'
+        pll_lib_dir = './build_plllib'
+
+        os.makedirs(raxml_lib_dir, exist_ok=True)
+        os.makedirs(pll_lib_dir, exist_ok=True)
+
+        from pathlib import Path
+        for lib_path in list(Path('./pll-modules/build').glob('**/*.so*')):
+            shutil.copy(lib_path, pll_lib_dir)
+        for lib_path in list(Path('./pll-modules/install/lib').glob('**/*.so*')):
+            shutil.copy(lib_path, pll_lib_dir)
+        
+        for lib_path in list(Path('./raxml-ng/build').glob('**/*.so*')):
+            shutil.copy(lib_path, os.path.join(raxml_lib_dir, "libraxml.so"))
+
         build_ext.run(self)
-
-
-class CustomInstall(install):
-    def initialize_options(self):
-        super().initialize_options()
-        self.install_lib = None
-
-    def run(self):
-        super().run()
-        raxmlpy_libs_path = "./build_raxmllib"
-        os.makedirs(raxmlpy_libs_path, exist_ok=True)
-
-        lib_directories = [
-            './raxml-ng/build'
-        ]
-
-        for directory in lib_directories:
-            for lib_path in glob.glob(os.path.join(directory, '*.so*')):
-                shutil.copy(lib_path, raxmlpy_libs_path)
 
 
 
@@ -81,9 +92,9 @@ ext_modules = [
             'pllmodbinary',
             'pllmodalgorithm',
             'pll',
-            'pll_algorithm', 
-            'pll_optimize', 
-            'pll_tree', 
+            'pll_algorithm',
+            'pll_optimize',
+            'pll_tree',
             'pll_util',
             'm'
         ],
@@ -106,8 +117,7 @@ setup(
     ext_modules=ext_modules,
     packages=find_packages(),
     cmdclass={
-        'build_ext': CustomBuildExt,
-        'install': CustomInstall
+        'build_ext': CustomBuildExt
     },
     zip_safe=False,
 )
