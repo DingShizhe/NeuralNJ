@@ -63,7 +63,7 @@ python finetune_rl_search.py --config ./config/finetune_reinforce_search_example
 ```
 
 ```bash
-python finetune_rl_search.py --config ./config/finetune_reinforce_search_example.yaml --infer_opt Reinforce
+python finetune_rl_search.py --config ./config/finetune_reinforce_search_example.yaml --infer_opt Finetune
 ```
 
 ## Example Cases
