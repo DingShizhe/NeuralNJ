@@ -75,7 +75,7 @@ def get_tree_str_from_newick(newick_file):
     return tree_str
 
 
-def reinforce_rollout(batch, agent, env, cfgs, replay_buffer=None, eval=False, argmax=False, get_all_tree=False):
+def reinforce_rollout(batch, agent, env, cfgs, replay_buffer=None, eval=False, argmax=False, get_all_tree=False, branch_optimize=False):
 
     if not eval:
         replay_buffer_sample_size = min(cfgs.replay_buffer_sample_size, replay_buffer.get_size())
@@ -161,7 +161,7 @@ def reinforce_rollout(batch, agent, env, cfgs, replay_buffer=None, eval=False, a
 
         edge_actions = [(None, None) for _ in range(batch_size)]
 
-        done = env.step(actions, edge_actions, branch_optimize=True, agent=agent)
+        done = env.step(actions, edge_actions, branch_optimize=branch_optimize, agent=agent)
 
         if done:
             break
@@ -189,32 +189,15 @@ def reinforce_rollout(batch, agent, env, cfgs, replay_buffer=None, eval=False, a
     return selected_log_ps, log_ps, scores, best_tree
 
 
-def RL_finetuning(cfgs, MSA_file, c_best_tree_file=None, raw_tree_file=None):
-    env = PhyInferEnv(cfgs, device)
+def RL_finetuning(cfgs, MSA_file, policy_network, optimizer, env, c_best_tree_file=None, raw_tree_file=None):
     replay_buffer = utils.ReplayBuffer(cfgs.replay_buffer_size)
     trajectory_num = 1 #cfgs.ENV.TRAJECTORY_NUM
     batch_size = 1 #cfgs.env.batch_size
 
     print("Data loaded")
 
-    if cfgs.reload_checkpoint_path:
-        PGPI_pretrained = PGPI(cfgs).to(device)
-        checkpoint = torch.load(cfgs.reload_checkpoint_path)
-        PGPI_pretrained.load_state_dict(checkpoint['model_state_dict'])
-        optimizer = optim.Adam(PGPI_pretrained.parameters(), lr=cfgs.lr)
-        accumulated_steps = checkpoint['accumulated_steps']
-        epoch_now = checkpoint['epoch']
-        print(f"Reloaded checkpoint at epoch {epoch_now}, accumulated_steps {accumulated_steps}")
-    else:
-        PGPI_pretrained = PGPI(cfgs).to(device)
-        optimizer = optim.Adam(PGPI_pretrained.parameters(), lr=cfgs.lr)
-        accumulated_steps = 0
-        epoch_now = 0
-
     accumulated_steps = 0
     epoch_now = 0
-
-    policy_network = PGPI_pretrained
 
     baseline_val = -np.inf
     baseline_val_batch = []
@@ -285,7 +268,7 @@ def RL_finetuning(cfgs, MSA_file, c_best_tree_file=None, raw_tree_file=None):
         if epoch == 1:
             baseline_scores_collect = []
             for episode in range(cfgs.num_episodes_baseline):
-                _, _, baseline_scores, _ = reinforce_rollout(batch, baseline, env, cfgs, eval=True)
+                _, _, baseline_scores, _ = reinforce_rollout(batch, baseline, env, cfgs, eval=True, branch_optimize=True)
                 baseline_scores_collect.append(baseline_scores)
             baseline_scores_collect = torch.cat(baseline_scores_collect, dim=0)
             baseline_val = max(baseline_scores_collect.min(), baseline_val)
@@ -295,12 +278,12 @@ def RL_finetuning(cfgs, MSA_file, c_best_tree_file=None, raw_tree_file=None):
             baseline_val_batch = []
 
 
-        print(f"Epoch {epoch + 1}/{cfgs.num_epoch}")
+        # print(f"Epoch {epoch + 1}/{cfgs.num_epoch}")
 
         for episode in range(cfgs.num_episodes):
             # print(f"episode {episode + 1}/{cfgs.num_episodes}")
             # _, _, scores, best_tree = reinforce_rollout(batch, policy_network, env, cfgs, eval=True)
-            selected_log_ps, log_ps, scores, best_tree = reinforce_rollout(batch, policy_network, env, cfgs, replay_buffer)
+            selected_log_ps, log_ps, scores, best_tree = reinforce_rollout(batch, policy_network, env, cfgs, replay_buffer,  branch_optimize=True)
             selected_log_p = selected_log_ps.sum(dim=1)
 
             # try policy loss
@@ -336,9 +319,11 @@ def RL_finetuning(cfgs, MSA_file, c_best_tree_file=None, raw_tree_file=None):
                     the_best_tree_update = True
                     time_when_best_score_max = time.time() - start_time
 
-            step_cur = episode+(epoch-1)*cfgs.num_episodes
+            step_cur = 1+episode+(epoch-1)*cfgs.num_episodes
 
         # if time.time() - start_time > STOP_TIME: 
+
+        print(f"Step {step_cur}/{STOP_STEP}")
         if step_cur >= STOP_STEP:
             if raw_tree_str:
                 rf_distance, relative_rf_distance = calculate_rf_distance(raw_tree_str, the_best_tree)
@@ -350,32 +335,11 @@ def RL_finetuning(cfgs, MSA_file, c_best_tree_file=None, raw_tree_file=None):
     return dict(the_best_tree=the_best_tree, the_best_score=the_best_score, raw_tree_score=raw_tree_score, c_best_tree_score=c_best_tree_score, time_when_best_score_max=time_when_best_score_max, relative_rf_distance=relative_rf_distance, step_cur=step_cur)
 
 
-def RL_Search(cfgs, MSA_file, c_best_tree_file=None, raw_tree_file=None):
-    env = PhyInferEnv(cfgs, device)
-
+def RL_Search(cfgs, MSA_file, policy_network, env, c_best_tree_file=None, raw_tree_file=None):
     trajectory_num = 1 
     batch_size = cfgs.env.batch_size
 
-    print("Data loaded")
-
-    if cfgs.reload_checkpoint_path:
-        PGPI_pretrained = PGPI(cfgs).to(device)
-        checkpoint = torch.load(cfgs.reload_checkpoint_path)
-        PGPI_pretrained.load_state_dict(checkpoint['model_state_dict'], strict=False)
-
-        accumulated_steps = checkpoint['accumulated_steps']
-        epoch_now = checkpoint['epoch']
-        print(f"Reloaded checkpoint at epoch {epoch_now}, accumulated_steps {accumulated_steps}")
-    else:
-        PGPI_pretrained = PGPI(cfgs).to(device)
-        accumulated_steps = 0
-        epoch_now = 0
-
-    accumulated_steps = 0
     epoch_now = 0
-
-    policy_network = PGPI_pretrained
-
     the_best_tree = None
     the_best_score = -np.inf
 
@@ -431,10 +395,10 @@ def RL_Search(cfgs, MSA_file, c_best_tree_file=None, raw_tree_file=None):
 
         the_best_tree_update = False
 
-        print(f"Epoch {epoch + 1}/{cfgs.num_epoch}")
+        # print(f"Epoch {epoch + 1}/{cfgs.num_epoch}")
 
         for episode in range(cfgs.num_episodes):
-            _, _, scores, best_tree = reinforce_rollout(batch, policy_network, env, cfgs, eval=True)
+            _, _, scores, best_tree = reinforce_rollout(batch, policy_network, env, cfgs, eval=True, branch_optimize=True)
 
             if the_best_tree is None:
                 the_best_tree = best_tree
@@ -448,8 +412,9 @@ def RL_Search(cfgs, MSA_file, c_best_tree_file=None, raw_tree_file=None):
             
             # print(the_best_tree)
         # 检查是否超过一分钟
-            step_cur = episode+(epoch-1)*cfgs.num_episodes
+            step_cur = 1+episode+(epoch-1)*cfgs.num_episodes
 
+        print(f"Step {step_cur}/{STOP_STEP}")
         # if time.time() - start_time > STOP_TIME: 
         if step_cur >= STOP_STEP:
             if raw_tree_str:
@@ -462,24 +427,9 @@ def RL_Search(cfgs, MSA_file, c_best_tree_file=None, raw_tree_file=None):
     return dict(the_best_tree=the_best_tree, the_best_score=the_best_score, raw_tree_score=raw_tree_score, c_best_tree_score=c_best_tree_score, time_when_best_score_max=time_when_best_score_max, relative_rf_distance=relative_rf_distance, step_cur=step_cur)
 
 
-def Agmax_one_instance(cfgs, MSA_file, c_best_tree_file=None, raw_tree_file=None):
-    env = PhyInferEnv(cfgs, device)
+def Agmax_one_instance(cfgs, MSA_file, policy_network, env, c_best_tree_file=None, raw_tree_file=None,branch_optimize=False):
+    # 移除了模型加载部分，直接使用传入的模型和环境
     batch_size = cfgs.env.batch_size
-
-    if cfgs.reload_checkpoint_path:
-        PGPI_pretrained = PGPI(cfgs).to(device)
-        checkpoint = torch.load(cfgs.reload_checkpoint_path)
-        PGPI_pretrained.load_state_dict(checkpoint['model_state_dict'])
-        accumulated_steps = checkpoint['accumulated_steps']
-        epoch_now = checkpoint['epoch']
-        print(f"Reloaded checkpoint at epoch {epoch_now}, accumulated_steps {accumulated_steps}")
-    else:
-        PGPI_pretrained = PGPI(cfgs).to(device)
-        accumulated_steps = 0
-        epoch_now = 0
-
-    policy_network = PGPI_pretrained
-
     batch = load_pi_instance(MSA_file)
 
     def expand_one_instance(x, L):
@@ -505,13 +455,10 @@ def Agmax_one_instance(cfgs, MSA_file, c_best_tree_file=None, raw_tree_file=None
         c_best_tree_score = None 
         c_best_tree_str = None
 
-    _, _, scores, best_tree = reinforce_rollout(batch, policy_network, env, cfgs, eval=True, argmax=True)
+    _, _, scores, best_tree = reinforce_rollout(batch, policy_network, env, cfgs, eval=True, argmax=True, branch_optimize=branch_optimize)
 
-    # import pdb; pdb.set_trace()
     score = scores[0].detach().cpu().item()
     best_tree_str = best_tree
-
-    # import pdb; pdb.set_trace()
     
     rf_distance = None
     if c_best_tree_str:
@@ -525,28 +472,60 @@ def Agmax_one_instance(cfgs, MSA_file, c_best_tree_file=None, raw_tree_file=None
     if raw_tree_str and c_best_tree_str:
         _, rf_distance_c_raw = calculate_rf_distance(raw_tree_str, c_best_tree_str)
 
-
     return dict(best_tree_str=best_tree_str, score=score, raw_tree_score=raw_tree_score, c_best_tree_score=c_best_tree_score, rf_distance=rf_distance, rf_distance_raw=rf_distance_raw, rf_distance_c_raw=rf_distance_c_raw)
 
 
-def Argmax_inference(test_file_path, write_dir,write_file_name):
+def Argmax_inference(test_file_path, write_dir, write_file_name, branch_optimize=False):
+    env = PhyInferEnv(cfgs, device)
+    
+    if cfgs.reload_checkpoint_path:
+        PGPI_pretrained = PGPI(cfgs).to(device)
+        checkpoint = torch.load(cfgs.reload_checkpoint_path)
+        PGPI_pretrained.load_state_dict(checkpoint['model_state_dict'])
+        accumulated_steps = checkpoint['accumulated_steps']
+        epoch_now = checkpoint['epoch']
+        print(f"Reloaded checkpoint at epoch {epoch_now}, accumulated_steps {accumulated_steps}")
+    else:
+        PGPI_pretrained = PGPI(cfgs).to(device)
+        accumulated_steps = 0
+        epoch_now = 0
+
+    policy_network = PGPI_pretrained
+
     files = os.listdir(test_file_path)
     files = [file for file in files if file.endswith(".phy")]
 
     if not os.path.exists(write_dir):
         os.makedirs(write_dir)
 
-    # RL_argmax(test_file_path, cfgs, write_dir, write_file_name) 
-    for file in files:
+    import tqdm
+    for file in tqdm.tqdm(files, desc="Processing MSA files"):
         MSA_file = os.path.join(test_file_path, file)
-        if all(os.path.exists(f) for f in [MSA_file]):
-            result_dict = Agmax_one_instance(cfgs, MSA_file)
-            # save the best tree to write_dir as "MSA_file" + ".tre"
+        if os.path.exists(MSA_file):
+            # 传入已加载好的模型和环境
+            result_dict = Agmax_one_instance(cfgs, MSA_file, policy_network, env, branch_optimize=branch_optimize)
+            # 保存最优树
             with open(os.path.join(write_dir, file[:-4] + ".tre"), "w") as f:
                 f.write(result_dict["best_tree_str"])
 
 
 def Search_inference(test_file_path, write_dir,write_file_name):
+    env = PhyInferEnv(cfgs, device)
+    
+    if cfgs.reload_checkpoint_path:
+        PGPI_pretrained = PGPI(cfgs).to(device)
+        checkpoint = torch.load(cfgs.reload_checkpoint_path)
+        PGPI_pretrained.load_state_dict(checkpoint['model_state_dict'])
+        accumulated_steps = checkpoint['accumulated_steps']
+        epoch_now = checkpoint['epoch']
+        print(f"Reloaded checkpoint at epoch {epoch_now}, accumulated_steps {accumulated_steps}")
+    else:
+        PGPI_pretrained = PGPI(cfgs).to(device)
+        accumulated_steps = 0
+        epoch_now = 0
+
+    policy_network = PGPI_pretrained
+
     files = os.listdir(test_file_path)
     files = [file for file in files if file.endswith(".phy")]
     if not os.path.exists(write_dir):
@@ -556,13 +535,33 @@ def Search_inference(test_file_path, write_dir,write_file_name):
         MSA_file = os.path.join(test_file_path, file)
         if all(os.path.exists(f) for f in [MSA_file]):
             # Call the placeholder RL_Search function
-            result_dict = RL_Search(cfgs, MSA_file)
+            result_dict = RL_Search(cfgs, MSA_file, policy_network, env)
             with open(os.path.join(write_dir, file[:-4] + ".tre"), "w") as f:
                 f.write(result_dict["the_best_tree"])
+        print(f"finish NerualNJ-MC for {file}")
+
 
 
 def finetune_inference(test_file_path, write_dir, write_file_name):
-     # ***************************************Search***************************************
+    env = PhyInferEnv(cfgs, device)
+    
+    if cfgs.reload_checkpoint_path:
+        PGPI_pretrained = PGPI(cfgs).to(device)
+        checkpoint = torch.load(cfgs.reload_checkpoint_path)
+        PGPI_pretrained.load_state_dict(checkpoint['model_state_dict'])
+        optimizer = optim.Adam(PGPI_pretrained.parameters(), lr=cfgs.lr)
+        accumulated_steps = checkpoint['accumulated_steps']
+        epoch_now = checkpoint['epoch']
+        print(f"Reloaded checkpoint at epoch {epoch_now}, accumulated_steps {accumulated_steps}")
+    else:
+        PGPI_pretrained = PGPI(cfgs).to(device)
+        optimizer = optim.Adam(PGPI_pretrained.parameters(), lr=cfgs.lr)
+        accumulated_steps = 0
+        epoch_now = 0
+
+
+    policy_network = PGPI_pretrained
+
     files = os.listdir(test_file_path)
     files = [file for file in files if file.endswith(".phy")]
 
@@ -572,10 +571,11 @@ def finetune_inference(test_file_path, write_dir, write_file_name):
         MSA_file = os.path.join(test_file_path, file)
         if all(os.path.exists(f) for f in [MSA_file]):
             # Call the placeholder RL_Search function
-            result_dict = RL_finetuning(cfgs, MSA_file)
+            result_dict = RL_finetuning(cfgs, MSA_file, policy_network, optimizer, env)
             
             with open(os.path.join(write_dir, file[:-4] + ".tre"), "w") as f:
                 f.write(result_dict["the_best_tree"])
+        print(f"finish NerualNJ-RL for {file}")
 
 
 
@@ -587,6 +587,7 @@ if __name__ == "__main__":
     parser.add_argument('--infer_opt', type=str, default="Argmax", help='Options of inference: "Argmax" for NeuralNJ, "Search" for NeuralNJ-MC and "Finetune" for NeuralNJ-RL')
     parser.add_argument('--stop_step', type=int, default=100, help='Stop step')
     parser.add_argument('--evolution_model', type=str, default="GTR+I+G", help='Evolution model')
+    parser.add_argument('--branch_optimize', action='store_true', help='Enable branch optimization using raxmlpy if specified')
     args = parser.parse_args()
 
     cfgs = utils.empty_config()
@@ -601,16 +602,17 @@ if __name__ == "__main__":
     # label = "Search"
     label = args.infer_opt
     STOP_STEP = args.stop_step
+    branch_optimize = args.branch_optimize
     evolution_model = args.evolution_model
     utils.set_evolution_model(args.evolution_model)
 
     test_file_path = test_file_dir
-    test_file_name = test_file_path.split('/')[-3:]
-    write_dir =  f"examples/{label}_dim{cfgs.model.embed_dim}_patch{cfgs.model.patch_size}/"
+    test_file_name = test_file_path.split('/')[-1]
+    write_dir =  f"output/{label}_dim{cfgs.model.embed_dim}_patch{cfgs.model.patch_size}/{test_file_name}"
     write_file_name = f"{label}_bs{cfgs.env.batch_size}.csv"
 
     if label == "Argmax":
-        Argmax_inference(test_file_path, write_dir, write_file_name)
+        Argmax_inference(test_file_path, write_dir, write_file_name, branch_optimize=branch_optimize)
 
     elif label == "Search":
         Search_inference(test_file_path, write_dir, write_file_name)

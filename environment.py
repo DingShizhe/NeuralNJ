@@ -671,6 +671,19 @@ class PhyInferEnv(object):
             new_tree.utree_op_str = utree_op_str
             new_tree.log_score = log_score_op
 
+    def optimize_branch_length_no_br(self, new_trees):
+        for idx, new_tree in enumerate(new_trees):
+            sequence_keys = self.seq_keys[idx]
+            # sequences = self.batch_seqs[idx]
+
+            rtree_str = format_rtree(new_tree, True, None, sequence_keys)
+            rtree = pllpy.treestr_to_tuples(rtree_str)
+
+            assign_branch_length_rtree(new_tree, rtree)
+            new_tree.rtree_op_tuple = rtree
+            new_tree.utree_op_tuple = rtree
+            new_tree.utree_op_str = rtree_str
+            new_tree.log_score = -111111
 
     def step(
         self,
@@ -699,6 +712,8 @@ class PhyInferEnv(object):
                 self.optimize_branch_length_parallel(new_trees_constructed)
             else:
                 self.optimize_branch_length_sequential(new_trees_constructed)
+        elif unrooted:
+            self.optimize_branch_length_no_br(new_trees_constructed)
 
 
         new_states = []
@@ -711,10 +726,9 @@ class PhyInferEnv(object):
 
             if unrooted:
                 unrooted_tree = new_tree.to_unrooted_tree()
-                if branch_optimize:
-                    unrooted_tree.rtree_op_tuple = new_tree.rtree_op_tuple
-                    unrooted_tree.utree_op_tuple = new_tree.utree_op_tuple
-                    unrooted_tree.utree_op_str = new_tree.utree_op_str
+                unrooted_tree.rtree_op_tuple = new_tree.rtree_op_tuple
+                unrooted_tree.utree_op_tuple = new_tree.utree_op_tuple
+                unrooted_tree.utree_op_str = new_tree.utree_op_str
                 new_state = PhylogeneticTreeState([unrooted_tree])
             else:
 
