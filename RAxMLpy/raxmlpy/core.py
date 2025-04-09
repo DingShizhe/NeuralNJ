@@ -3,23 +3,23 @@ from .cpp_binding import compute_llh as cpp_compute_llh
 from .cpp_binding import test_func as cpp_test_func
 import re
 
-def optimize_brlen(tree_str, msa, is_root=False, iters=32):
-    ret = cpp_optimize_brlen(tree_str, msa["labels"], msa["sequences"], is_root, iters)
+def optimize_brlen(tree_str, msa, is_root=False, iters=32, model="JC", opt_model=True):
+    ret = cpp_optimize_brlen(tree_str, msa["labels"], msa["sequences"], is_root, iters, model, opt_model)
     return ret
 
-def compute_llh(tree_str, msa, is_root=False):
-    ret = cpp_compute_llh(tree_str, msa["labels"], msa["sequences"], is_root)
+def compute_llh(tree_str, msa, is_root=False, model="JC", opt_model=True):
+    ret = cpp_compute_llh(tree_str, msa["labels"], msa["sequences"], is_root, model, opt_model)
     return ret
 
 def test():
     return cpp_test_func()
 
 def treestr_to_tuples(treestr):
-    tmp = re.sub(r'(\w+):', r'"\1":', treestr)
+    # tmp = re.sub(r'(\w+):', r'"\1":', treestr)
+    tmp = re.sub(r'([a-zA-Z0-9_.]+):', r'"\1":', treestr)
     tmp = tmp.replace(':', ",")
     tmp = tmp.rstrip(';')
     return eval(tmp)
-
 
 def utree2rtree_guided(utree, rtree):
 
