@@ -37,7 +37,7 @@ def generate_random_tree(leaf_count, branch_length=1.0):
     
     for node in tree.get_nonterminals():
         log2 = math.log(2.0)
-        log50 = math.log(50)
+        log5 = math.log(5.0)
         _lambda = math.exp( random.uniform(log2, log50) )
         node.branch_length = random.expovariate(_lambda)
         node.name = ""
@@ -46,7 +46,7 @@ def generate_random_tree(leaf_count, branch_length=1.0):
         # node.branch_length = random.expovariate(1.0 / 0.1)
         log2 = math.log(2.0)
         log5 = math.log(5.0)
-        _lambda = math.exp( random.uniform(log2, log50) )
+        _lambda = math.exp( random.uniform(log2, log5) )
         node.branch_length = random.expovariate(_lambda)
 
     tree_handle = StringIO()
