@@ -74,6 +74,9 @@ def generate_align_seq(tree_str, leaf_count=50, site_len=2000,insertion_rate = 0
     # Save the tree to a file with .tre extension
     with open(f"{output_dir}/{output_filename}_raw.tre", "w") as tree_file:
         tree_file.write(tree_str)
+
+    with open(f"{output_dir}/{output_filename}.tre", "w") as tree_file:
+        tree_file.write(tree_str)
     
     command = [
         excuting_dir,
