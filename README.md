@@ -73,3 +73,4 @@ The example configuration file `./config/finetune_reinforce_search_example.yaml`
 - `G_l_1024_n_50_0.0_0.08_58.phy`: Used in the phylogenetic analysis case study in the paper
 - `G_l_1024_n_50_0.0_0.08_19.phy`: Used in the topology construction process analysis
 
+Additionally, examples/cal_rf_distance.py provides a utility to calculate Robinson-Foulds distance between two phylogenetic trees. Use it with python cal_rf_distance.py --reftree <reference_tree_file> --inftree <inferred_tree_file> to evaluate topological differences between trees.
