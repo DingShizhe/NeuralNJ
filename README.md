@@ -50,6 +50,12 @@ To train the model using synthetic data under the evolution model GTR+I+G, use t
 python train.py --config_path config/pretrain_mix.yaml
 ```
 
+
+You can monitor training and validation curves using TensorBoard with the following command:
+```bash
+tensorboard --logdir tb_logs/
+```
+
 ## Inference
 
 To perform inference for NeuralNJ, run:
