@@ -1,0 +1,60 @@
+IQ-TREE multicore version 2.2.2.6 COVID-edition for Linux 64-bit built May 27 2023
+Developed by Bui Quang Minh, James Barbetti, Nguyen Lam Tung,
+Olga Chernomor, Heiko Schmidt, Dominik Schrempf, Michael Woodhams, Ly Trong Nhan.
+
+Host:    node15 (AVX512, FMA3, 250 GB RAM)
+Command: iqtree-2.2.2.6-Linux/bin/iqtree2 --alisim ./empiral_GTR+I+G_gap0.1_test/len512/taxa100/G_l_512_n_100_0_0.04_85 -m GTR{0.94357,6.70075,1.08481,2.71339,19.0961}+F{0.30705173298857347,0.20419415556020304,0.2705477498716657,0.21820636157955775}+I{0.03526}+G{2.61481} -t ./empiral_GTR+I+G_gap0.1_test/len512/taxa100/G_l_512_n_100_0_0.04_85_raw.tre --length 512 --indel 0,0.04 --no-unaligned --seed 85
+Seed:    85 (Using SPRNG - Scalable Parallel Random Number Generator)
+Time:    Thu Jun 26 15:42:54 2025
+Kernel:  AVX+FMA - 1 threads (104 CPU cores detected)
+
+[Alignment Simulator] Executing
+ - Tree filepath: ./empiral_GTR+I+G_gap0.1_test/len512/taxa100/G_l_512_n_100_0_0.04_85_raw.tre
+ - Length of output sequences: 512
+ - Model: GTR{0.94357,6.70075,1.08481,2.71339,19.0961}+F{0.30705173298857347,0.20419415556020304,0.2705477498716657,0.21820636157955775}+I{0.03526}+G{2.61481}
+ - Number of output datasets: 1
+An alignment has just been exported to ./empiral_GTR+I+G_gap0.1_test/len512/taxa100/G_l_512_n_100_0_0.04_85.phy
+Output sequence length: 512
+SUBSTITUTION PROCESS
+--------------------
+
+Model of substitution: GTR+FU+I+G4
+
+Rate parameter R:
+
+  A-C: 0.944
+  A-G: 6.701
+  A-T: 1.085
+  C-G: 2.713
+  C-T: 19.096
+  G-T: 1.000
+
+State frequencies: (user-defined)
+
+  pi(A) = 0.307
+  pi(C) = 0.204
+  pi(G) = 0.271
+  pi(T) = 0.218
+
+Rate matrix Q:
+
+  A    -0.641    0.0551     0.518    0.0677
+  C    0.0829     -1.48      0.21      1.19
+  G     0.588     0.158    -0.809    0.0624
+  T    0.0953      1.12    0.0774     -1.29
+
+Model of rate heterogeneity: Invar+Gamma with 4 categories
+Proportion of invariable sites: 0.0353
+Gamma shape alpha: 2.61
+
+ Category  Relative_rate  Proportion
+  0         0              0.0353
+  1         0.37           0.241
+  2         0.734          0.241
+  3         1.12           0.241
+  4         1.92           0.241
+Relative rates are computed as MEAN of the portion of the Gamma distribution falling in the category.
+
+[Alignment Simulator] Done
+Simulation time: 0.029s
+Date and Time: Thu Jun 26 15:42:54 2025
