@@ -50,6 +50,12 @@ To train the model using synthetic data under the evolution model GTR+I+G, use t
 python train.py --config_path config/pretrain_mix.yaml
 ```
 
+
+You can monitor training and validation curves using TensorBoard with the following command:
+```bash
+tensorboard --logdir tb_logs/
+```
+
 ## Inference
 
 To perform inference for NeuralNJ, run:
@@ -73,3 +79,4 @@ The example configuration file `./config/finetune_reinforce_search_example.yaml`
 - `G_l_1024_n_50_0_0.03_73.phy`: Used in the phylogenetic analysis case study in the paper
 - `G_l_1024_n_50_0_0.02_71.phy`: Used in the topology construction process analysis
 
+Additionally, examples/cal_rf_distance.py provides a utility to calculate Robinson-Foulds distance between two phylogenetic trees. Use it with python cal_rf_distance.py --reftree <reference_tree_file> --inftree <inferred_tree_file> to evaluate topological differences between trees.

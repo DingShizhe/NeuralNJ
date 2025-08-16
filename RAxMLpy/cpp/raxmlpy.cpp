@@ -1718,7 +1718,35 @@ void build_raxml_instance(
 
 
 
-double thread_infer_ml_compute_llh(RaxmlInstance& instance)
+double optimize_model(TreeInfo& treeinfo, double lh_epsilon)
+{
+  double new_loglh = treeinfo.loglh();
+
+//  if (!params_to_optimize)
+//    return new_loglh;
+
+  int iter_num = 0;
+  double cur_loglh;
+  do
+  {
+    cur_loglh = new_loglh;
+
+    treeinfo.optimize_params_all(lh_epsilon);
+
+    new_loglh = treeinfo.loglh();
+
+//      printf("old: %f, new: %f\n", cur_loglh, new_loglh);
+
+    iter_num++;
+    LOG_DEBUG << "Iteration " << iter_num <<  ": logLH = " << new_loglh << endl;
+  }
+  while (new_loglh - cur_loglh > lh_epsilon);
+
+  return new_loglh;
+}
+
+
+double thread_infer_ml_compute_llh(RaxmlInstance& instance, bool opt_model)
 {
     //   auto& worker = instance.get_worker();
     auto const& master_msa = *instance.parted_msa;
@@ -1749,6 +1777,12 @@ double thread_infer_ml_compute_llh(RaxmlInstance& instance)
     assert(!tree.empty());
     treeinfo.reset(new TreeInfo(opts, tree, master_msa, instance.tip_msa_idmap, part_assign));
 
+    if (opt_model)
+    {
+      auto loglh_opt = optimize_model(*treeinfo, 1.0);
+      return loglh_opt;
+    }
+
     return treeinfo->loglh();
 }
 
@@ -1765,14 +1799,14 @@ double compute_llh(
 
     build_raxml_instance(instance, tree_str, labels, sequences, tree_rooted, model_config, opt_model);
 
-    auto ret = thread_infer_ml_compute_llh(instance);
+    auto ret = thread_infer_ml_compute_llh(instance, opt_model);
 
     return ret;
 }
 
 
 
-std::tuple<std::string, double, double> thread_infer_ml_optimize_brlen(RaxmlInstance& instance)
+std::tuple<std::string, double, double> thread_infer_ml_optimize_brlen(RaxmlInstance& instance, bool opt_model)
 {
     auto const& master_msa = *instance.parted_msa;
     auto const& opts = instance.opts;
@@ -1795,6 +1829,11 @@ std::tuple<std::string, double, double> thread_infer_ml_optimize_brlen(RaxmlInst
 
     double fast_modopt_eps = 10.0;
     auto loglh_opt = treeinfo->optimize_branches(fast_modopt_eps, 1);
+
+    if(opt_model)
+    {
+      loglh_opt = optimize_model(*treeinfo, 1.0);
+    }
 
 
     auto opt_tree = treeinfo->pll_treeinfo().tree;
@@ -1826,22 +1865,16 @@ std::tuple<std::string, double, double> optimize_brlen(
 
     build_raxml_instance(instance, tree_str, labels, sequences, tree_rooted, model_config, opt_model);
 
-    auto ret = thread_infer_ml_optimize_brlen(instance);
+    auto ret = thread_infer_ml_optimize_brlen(instance, opt_model);
 
     return ret;
 
 }
 
 
-
-
-
-
 void test_func() {
     Options o;
 }
-
-
 
 
 PYBIND11_MODULE(cpp_binding, m) {
