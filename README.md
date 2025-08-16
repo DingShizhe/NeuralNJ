@@ -34,7 +34,11 @@ cd data_gen/
 python generate.py
 ```
 
-**Note: Pre-generated datasets under the GTR+G model used in the paper are provided in the `./data_gen/data` directory for training, validation, and testing.**
+By default, `generate.py` utilizes ALISM with its default parameter settings for tree simulation. For empirical parameter-based simulations, refer to `generate_empirical.py`, which employs parameters derived from Naser-Khdour, S., Minh, B. Q., & Lanfear, R. (2021). "The influence of model violation on phylogenetic inference: a simulation study." bioRxiv, 2021-09. These parameters are used to configure ALISM for data generation.
+
+**Note:** NeuralNJ employs datasets generated via `generate_empirical.py` for both training and validation.
+
+**Note: Pre-generated datasets under the GTR+I+G model used in the paper are provided in the `./data_gen/data` directory for training, validation, and testing.**
 
 ## Real Data
 
