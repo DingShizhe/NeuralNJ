@@ -70,6 +70,6 @@ python finetune_rl_search.py --config ./config/finetune_reinforce_search_example
 
 The example configuration file `./config/finetune_reinforce_search_example.yaml` uses test cases located in the `examples` folder. Specifically, two cases in `examples/len1024taxa50`:
 
-- `G_l_1024_n_50_0.0_0.08_58.phy`: Used in the phylogenetic analysis case study in the paper
-- `G_l_1024_n_50_0.0_0.08_19.phy`: Used in the topology construction process analysis
+- `G_l_1024_n_50_0_0.03_73.phy`: Used in the phylogenetic analysis case study in the paper
+- `G_l_1024_n_50_0_0.02_71.phy`: Used in the topology construction process analysis
 
