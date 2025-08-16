@@ -34,7 +34,7 @@ cd data_gen/
 python generate.py
 ```
 
-By default, `generate.py` utilizes ALISM with its default parameter settings for tree simulation. For empirical parameter-based simulations, refer to `generate_empirical.py`, which employs parameters derived from Naser-Khdour, S., Minh, B. Q., & Lanfear, R. (2021). "The influence of model violation on phylogenetic inference: a simulation study." bioRxiv, 2021-09. These parameters are used to configure ALISM for data generation.
+By default, `generate.py` utilizes ALISM with its default parameter settings for tree simulation. For empirical parameter-based simulations, refer to `generate_empirical.py`, which employs parameters derived from Naser-Khdour, S., Minh, B. Q., & Lanfear, R. (2021). *The influence of model violation on phylogenetic inference: a simulation study*. bioRxiv, 2021.09.22.461455. https://doi.org/10.1101/2021.09.22.461455. These parameters are used to configure ALISM for data generation.
 
 **Note:** NeuralNJ employs datasets generated via `generate_empirical.py` for both training and validation.
 

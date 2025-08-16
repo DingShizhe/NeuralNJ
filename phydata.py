@@ -91,7 +91,7 @@ def optimize_branch_length(phy_path, tre_path, iters=3):
         "sequences": seqs
     }
 
-    tree_op, logllint, logllop = raxmlpy.optimize_brlen(tree_str, msa, is_root=False, iters=iters, model=evolution_model, opt_model=False)
+    tree_op, logllint, logllop = raxmlpy.optimize_brlen(tree_str, msa, is_root=False, iters=iters, model=evolution_model, opt_model=True)
     return logllop, tree_str
 
 

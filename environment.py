@@ -371,7 +371,7 @@ def process_(args):
     }
 
     utree_op_str, log_score_pre, log_score_op = pllpy.optimize_brlen(
-        rtree_str, tree_msa, is_root=True, iters=3, model=evolution_model, opt_model=False
+        rtree_str, tree_msa, is_root=True, iters=3, model=evolution_model, opt_model=True
     )
     utree_op_tuple = pllpy.treestr_to_tuples(utree_op_str)
     rtree_op_tuple = pllpy.utree2rtree_guided(utree_op_tuple, rtree)
@@ -386,7 +386,7 @@ def get_logscore_from_tree_str(args):
         "sequences": [sequences[seq_ii] for seq_ii in seq_indices],
     }
     utree_op_str, log_score_pre, log_score_op = pllpy.optimize_brlen(
-        rtree_str, tree_msa, is_root=True, iters=3, model=evolution_model, opt_model=False
+        rtree_str, tree_msa, is_root=True, iters=3, model=evolution_model, opt_model=True
     )
     return log_score_op
 
@@ -434,7 +434,7 @@ def compute_raw_tree_log_score(env, rtree_str_batch, parallel=False):
             }
 
             utree_op_str, log_score_pre, log_score_op = pllpy.optimize_brlen(
-                rtree_str, tree_msa, is_root=True, iters=3, model=evolution_model, opt_model=False
+                rtree_str, tree_msa, is_root=True, iters=3, model=evolution_model, opt_model=True
             )
             log_scores_op.append(log_score_op)
 
@@ -660,7 +660,7 @@ class PhyInferEnv(object):
             }
 
             utree_op_str, _, log_score_op = pllpy.optimize_brlen(
-                rtree_str, tree_msa, is_root=True, iters=3, model=evolution_model, opt_model=False
+                rtree_str, tree_msa, is_root=True, iters=3, model=evolution_model, opt_model=True
             )
             utree_op_tuple = pllpy.treestr_to_tuples(utree_op_str)
             rtree_op_tuple = pllpy.utree2rtree_guided(utree_op_tuple, rtree)

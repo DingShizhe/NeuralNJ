@@ -47,7 +47,6 @@ def supervise_rollout(batch, agent, env, eval=False, pretrained=True, action_set
     # batch_distances = batch['batch_distances']
     trees = batch['trees']
 
-    # import pdb; pdb.set_trace()
 
     b = len(batch_action_set)
     # k = len(batch_action_set[0])
@@ -93,10 +92,8 @@ def supervise_rollout(batch, agent, env, eval=False, pretrained=True, action_set
                 with torch.no_grad():
                     env.state_tensor = agent.encode_zxr(env.init_state_tensor, batch_seq_mask)
             else:
-                # import pdb; pdb.set_trace()
                 env.state_tensor = agent.encode_zxr(env.init_state_tensor, batch_seq_mask)
 
-        # import pdb; pdb.set_trace()
         batch_size, nb_seq = env.state_tensor.shape[:2]
 
         if eval:
@@ -140,7 +137,6 @@ def supervise_rollout(batch, agent, env, eval=False, pretrained=True, action_set
         if done:
             break
 
-        # import pdb; pdb.set_trace()
         step += 1
 
         selected_log_p = torch.gather(log_p, 1, actions.unsqueeze(1))
@@ -291,9 +287,10 @@ def train(cfgs):
     trajectory_num = 1 #cfgs.ENV.TRAJECTORY_NUM
     taxa_list = cfgs.dataset_taxa_list
     len_list = cfgs.dataset_len_list
-    dataset = PhyDataset(train_path, trajectory_num=trajectory_num, device=device,len_list=len_list, taxa_list=taxa_list)
+    dataset = PhyDataset(train_path, trajectory_num=trajectory_num, device=device, len_list=len_list, taxa_list=taxa_list)
     dataset_train_val = PhyDataset(train_path, trajectory_num=trajectory_num, device=device,num_per_file=32,len_list=[256,512,1024], taxa_list=taxa_list)
-    dataset_val2 = PhyDataset(val_path, trajectory_num=trajectory_num, device=device, num_per_file=32, len_list=[1024], taxa_list=[50])
+    dataset_val2 = PhyDataset(val_path, trajectory_num=trajectory_num, device=device, num_per_file=32, len_list=[256,512,1024], taxa_list=taxa_list)
+    # dataset_val_nogap = PhyDataset(val_path+'_nogap', trajectory_num=trajectory_num, device=device, num_per_file=16, len_list=[1024], taxa_list=[50])
 
     batch_size = cfgs.env.batch_size
 
@@ -305,7 +302,9 @@ def train(cfgs):
     data_loader_train_val = torch.utils.data.DataLoader(dataset_train_val, batch_sampler=train_val_sample_val, collate_fn=custom_collate_fn, num_workers=2)
     val_sample_val2 = PhySampler(dataset_val2, batch_size , shuffle=False)
     data_loader_val2 = torch.utils.data.DataLoader(dataset_val2, batch_sampler=val_sample_val2, collate_fn=custom_collate_fn, num_workers=2)
-    
+    # val_sample_val_nogap = PhySampler(dataset_val_nogap, batch_size , shuffle=False)
+    # data_loader_val_nogap = torch.utils.data.DataLoader(dataset_val_nogap, batch_sampler=val_sample_val_nogap, collate_fn=custom_collate_fn, num_workers=2)
+
 
     BALANCED_ELU_LOSS = cfgs.loss.BALANCED_ELU_LOSS
     ELU_LOSS = cfgs.loss.ELU_LOSS
@@ -339,6 +338,12 @@ def train(cfgs):
 
     first_val_flag = True
     ref_scores_dict = dict()
+    best_val_rf_distance = float('inf')
+    patience = cfgs.no_improvement_stop if hasattr(cfgs, 'no_improvement_stop') else 5 
+    patience_counter = 0
+    hard_loss_ceiling = cfgs.hard_loss_ceiling if hasattr(cfgs, 'hard_loss_ceiling') else 1.5  
+    val_rf_distance_history = []
+    val_check_interval = 10000
 
 
     for epoch in range(epoch_now+1, cfgs.num_epoch):
@@ -347,6 +352,83 @@ def train(cfgs):
         print(f"Epoch {epoch + 1}/{cfgs.num_epoch}")
         print(f"Number of batches: {len(data_loader)}")
         # for batch in tqdm(data_loader):
+
+        def eval_on_dataset(dataset_tag="test", ref_scores_dict=None):
+
+            scores_list = []
+            scores_ref_list = []
+            rfdist_list = []
+
+            argmax_action_in_action_set_count_list = []
+
+            if dataset_tag == 'val_taxa50':
+                eval_data_loader = data_loader_val2
+                summary_tag = dataset_tag
+            else:
+                eval_data_loader = data_loader_train_val
+                summary_tag = 'val_train'
+
+            with torch.no_grad():
+                print("Starting validation")
+                batch_idx = 0
+                for _, batch in enumerate(eval_data_loader):
+
+                    print(len(eval_data_loader))
+                    print(f"Val data: {len(batch['data'][0][0])}\t seq_keys: {len(batch['seq_keys'][0])}")
+
+                    if first_val_flag:
+                        _, _, _, _, _, _, _, _scores_ref, best_tree = supervise_rollout(batch, PGPI_pretrained, env, eval=True, pretrained=True, branch_optimize=True)
+
+                        ref_scores_dict[dataset_tag] = ref_scores_dict.get(dataset_tag, []) + [_scores_ref]
+
+                    scores_ref = ref_scores_dict[dataset_tag][batch_idx]
+
+                    logitss_argmax, _, selected_log_ps_argmax, scores, best_tree_pred, count_match_label_steps = reinforce_rollout(batch, PGPI_pretrained, env, eval=True, get_all_tree=True)
+
+
+                    for file,tree_pred_str in zip(batch['file_paths'], best_tree_pred):
+                        tree_str = utils.get_tree_str_from_newick(file[:-4]+'.tre')
+                        _, rfdist = utils.calculate_rf_distance(tree_str, tree_pred_str)
+                        rfdist_list.append(rfdist)
+
+                    count_match_label_steps = [x / (len(logitss)) for x in count_match_label_steps]
+                    argmax_action_in_action_set_count_list.extend(count_match_label_steps)
+
+                    scores_list.append(scores)
+                    scores_ref_list.append(scores_ref)
+
+                    batch_idx += 1
+
+
+            # summary_tag = "val" if dataset_tag == "test" else "val_train"
+
+            scores_tensor = torch.cat(scores_list, dim=0)
+            summary_writer.add_scalar('Tree Log likelihood (mean)/%s' % summary_tag, scores_tensor.mean().item(), accumulated_steps*batch_size)
+            summary_writer.add_scalar('Tree Log likelihood (std)/%s' % summary_tag, scores_tensor.std().item(), accumulated_steps*batch_size)
+
+            scores_ref_tensor = torch.cat(scores_ref_list, dim=0)
+            summary_writer.add_scalar('Tree Log likelihood (mean) ref/%s' % summary_tag, scores_ref_tensor.mean().item(), accumulated_steps*batch_size)
+            summary_writer.add_scalar('Tree Log likelihood (std) ref/%s' % summary_tag, scores_ref_tensor.std().item(), accumulated_steps*batch_size)
+
+            scores_diff = (scores_ref_tensor - scores_tensor).mean()
+            summary_writer.add_scalar('Tree Log likelihood Diff (mean) diff/%s' % summary_tag, scores_diff, accumulated_steps*batch_size)
+
+            summary_writer.add_scalar('Argmax_action_in_action_set_count (Correct)/%s' % summary_tag, sum(argmax_action_in_action_set_count_list) / len(argmax_action_in_action_set_count_list), accumulated_steps*batch_size)
+
+            # Convert the float values in rfdist_list to tensors
+            rfdist_list = [torch.tensor([x]) for x in rfdist_list]
+            # Now you can concatenate them
+            rfdistance = torch.cat(rfdist_list, dim=0)
+            summary_writer.add_scalar('Normalised RF distance in tree and label tree (mean)/%s' % summary_tag, rfdistance.mean().item(), accumulated_steps*batch_size)
+            summary_writer.add_scalar('Normalised RF distance in tree and label tree (std)/%s' % summary_tag, rfdistance.std().item(), accumulated_steps*batch_size)
+
+            rfdist_list = [torch.tensor([x]) for x in rfdist_list]
+            rfdistance = torch.cat(rfdist_list, dim=0)
+            summary_writer.add_scalar('Normalised RF distance in tree and label tree (mean)/%s' % summary_tag, rfdistance.mean().item(), accumulated_steps*batch_size)
+            summary_writer.add_scalar('Normalised RF distance in tree and label tree (std)/%s' % summary_tag, rfdistance.std().item(), accumulated_steps*batch_size)
+
+            return rfdistance.mean().item() 
+
 
         for _, batch in enumerate(data_loader):
             PGPI_pretrained.train()
@@ -448,7 +530,6 @@ def train(cfgs):
                 precision += precision_step.sum()
                 all_loss_pair_num += mask_sum_this_step
 
-            # import pdb; pdb.set_trace()
 
             precision =  precision / all_loss_pair_num
 
@@ -472,7 +553,6 @@ def train(cfgs):
             optimizer.step()
             optimizer.zero_grad()
 
-            # import pdb; pdb.set_trace()
             summary_writer.add_scalar('Loss/train', loss.item(), accumulated_steps*batch_size)
             summary_writer.add_scalar('Policy_Loss/train', policy_loss.item(), accumulated_steps*batch_size)
             summary_writer.add_scalar('Precision/train', precision, accumulated_steps*batch_size)
@@ -484,89 +564,54 @@ def train(cfgs):
             # summary_writer.add_scalar('Loss/Policy_loss', Policy_loss.item(), accumulated_steps*batch_size)
 
 
-            if accumulated_steps % 1280 == 0:
+            if accumulated_steps % 12800 == 0:
                 PGPI_pretrained.eval()
 
-                def eval_on_dataset(dataset_tag="test", ref_scores_dict=None):
-
-                    scores_list = []
-                    scores_ref_list = []
-                    rfdist_list = []
-
-                    argmax_action_in_action_set_count_list = []
-
-                    if dataset_tag == 'taxa50':
-                        eval_data_loader = data_loader_val2
-                        summary_tag = dataset_tag
-                    else:
-                        eval_data_loader = data_loader_train_val
-                        summary_tag = 'val_train'
-
-                    with torch.no_grad():
-                        print("Starting validation")
-                        batch_idx = 0
-                        for _, batch in enumerate(eval_data_loader):
-
-                            print(len(eval_data_loader))
-                            print(f"Val data: {len(batch['data'][0][0])}\t seq_keys: {len(batch['seq_keys'][0])}")
-
-                            if first_val_flag:
-                                _, _, _, _, _, _, _, _scores_ref, best_tree = supervise_rollout(batch, PGPI_pretrained, env, eval=True, pretrained=True, branch_optimize=True)
-
-                                ref_scores_dict[dataset_tag] = ref_scores_dict.get(dataset_tag, []) + [_scores_ref]
-
-                            scores_ref = ref_scores_dict[dataset_tag][batch_idx]
-
-                            logitss_argmax, _, selected_log_ps_argmax, scores, best_tree_pred, count_match_label_steps = reinforce_rollout(batch, PGPI_pretrained, env, eval=True, get_all_tree=True)
-
-
-                            for file,tree_pred_str in zip(batch['file_paths'], best_tree_pred):
-                                tree_str = utils.get_tree_str_from_newick(file[:-4]+'.tre')
-                                _, rfdist = utils.calculate_rf_distance(tree_str, tree_pred_str)
-                                rfdist_list.append(rfdist)
-
-                            count_match_label_steps = [x / (len(logitss)) for x in count_match_label_steps]
-                            argmax_action_in_action_set_count_list.extend(count_match_label_steps)
-
-                            scores_list.append(scores)
-                            scores_ref_list.append(scores_ref)
-
-                            batch_idx += 1
-
-
-                    # summary_tag = "val" if dataset_tag == "test" else "val_train"
-
-                    scores_tensor = torch.cat(scores_list, dim=0)
-                    summary_writer.add_scalar('Tree Log likelihood (mean)/%s' % summary_tag, scores_tensor.mean().item(), accumulated_steps*batch_size)
-                    summary_writer.add_scalar('Tree Log likelihood (std)/%s' % summary_tag, scores_tensor.std().item(), accumulated_steps*batch_size)
-
-                    scores_ref_tensor = torch.cat(scores_ref_list, dim=0)
-                    summary_writer.add_scalar('Tree Log likelihood (mean) ref/%s' % summary_tag, scores_ref_tensor.mean().item(), accumulated_steps*batch_size)
-                    summary_writer.add_scalar('Tree Log likelihood (std) ref/%s' % summary_tag, scores_ref_tensor.std().item(), accumulated_steps*batch_size)
-
-                    scores_diff = (scores_ref_tensor - scores_tensor).mean()
-                    summary_writer.add_scalar('Tree Log likelihood Diff (mean) diff/%s' % summary_tag, scores_diff, accumulated_steps*batch_size)
-
-                    summary_writer.add_scalar('Argmax_action_in_action_set_count (Correct)/%s' % summary_tag, sum(argmax_action_in_action_set_count_list) / len(argmax_action_in_action_set_count_list), accumulated_steps*batch_size)
-
-                    # Convert the float values in rfdist_list to tensors
-                    rfdist_list = [torch.tensor([x]) for x in rfdist_list]
-                    # Now you can concatenate them
-                    rfdistance = torch.cat(rfdist_list, dim=0)
-                    summary_writer.add_scalar('Normalised RF distance in tree and label tree (mean)/%s' % summary_tag, rfdistance.mean().item(), accumulated_steps*batch_size)
-                    summary_writer.add_scalar('Normalised RF distance in tree and label tree (std)/%s' % summary_tag, rfdistance.std().item(), accumulated_steps*batch_size)
-
-                eval_on_dataset("taxa50", ref_scores_dict)
+                eval_on_dataset("val_taxa50", ref_scores_dict)
+                # eval_on_dataset("val_taxa50_nogap", ref_scores_dict)
                 eval_on_dataset("train", ref_scores_dict)
 
                 first_val_flag = False
 
             accumulated_steps += 1
 
+            # 
+            if accumulated_steps % val_check_interval == 0:
+                PGPI_pretrained.eval()
+                val_rf_distance = eval_on_dataset("val_taxa50", ref_scores_dict)
+                val_rf_distance_history.append(val_rf_distance)
+
+                # hard loss ceiling
+                if val_rf_distance > hard_loss_ceiling:
+                    print(f"Early stop: val_rf_distance {val_rf_distance:.4f} exceed the threshold {hard_loss_ceiling}")
+                    break
+
+                # early stopping
+                if val_rf_distance < best_val_rf_distance:
+                    best_val_rf_distance = val_rf_distance
+                    patience_counter = 0
+                    print(f"Step {accumulated_steps}, update best_val_rf_distance to {best_val_rf_distance}")
+                else:
+                    patience_counter += 1
+                    print(f"val_rf_distance didn't improve, patience_counter={patience_counter}/{patience}")
+
+                if patience_counter >= patience:
+                    print(f"Early stopping: val_rf_distance {val_rf_distance:.4f} did not improve for {patience} consecutive checks. Stopping training early.")
+                    torch.save({
+                        'epoch': epoch,
+                        'model_state_dict': PGPI_pretrained.state_dict(),
+                        'optimizer_state_dict': optimizer.state_dict(),
+                        'accumulated_steps': accumulated_steps
+                    }, os.path.join(cfgs.checkpoint_path, time_str+cfgs.summary_name, f"checkpoint_final_epoch_{epoch}_step{accumulated_steps}.pt"))
+
+                    print(f"Saved checkpoint at epoch {epoch}, accumulated_steps {accumulated_steps}")
+                    # break
+                    return
+
 
         scheduler.step()
 
-        if epoch % 2 == 0:
+        if epoch % 1 == 0:
 
             torch.save({
                 'epoch': epoch,
