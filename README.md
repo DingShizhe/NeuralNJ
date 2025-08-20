@@ -38,7 +38,7 @@ By default, `generate.py` utilizes ALISM with its default parameter settings for
 
 **Note:** NeuralNJ employs datasets generated via `generate_empirical.py` for both training and validation.
 
-**Note: Pre-generated datasets under the GTR+I+G model used in the paper are provided in the `./data_gen/data` directory for training, validation, and testing.**
+**Note: Pre-generated datasets under the GTR+I+G model used in the paper are available on Zenodo: [https://doi.org/10.5281/zenodo.16912077](https://doi.org/10.5281/zenodo.16912077). Please download these datasets and place them in the `./data_gen/data` directory for training, validation, and testing.**
 
 ## Real Data
 
