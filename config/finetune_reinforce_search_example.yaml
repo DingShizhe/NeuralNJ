@@ -11,7 +11,7 @@ risk_epsilon: 0.5
 
 instance_path: "./examples/len1024taxa50"
 
-reload_checkpoint_path: "./checkpoint/train_on_GTR+I+G_ckpt90.pt"
+reload_checkpoint_path: "./checkpoint/train_on_generateemprical_GTR+I+G_final.pt"
 
 
 env:

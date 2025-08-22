@@ -1,0 +1,58 @@
+IQ-TREE multicore version 2.2.2.6 COVID-edition for Linux 64-bit built May 27 2023
+Developed by Bui Quang Minh, James Barbetti, Nguyen Lam Tung,
+Olga Chernomor, Heiko Schmidt, Dominik Schrempf, Michael Woodhams, Ly Trong Nhan.
+
+Host:    node15 (AVX512, FMA3, 250 GB RAM)
+Command: iqtree-2.2.2.6-Linux/bin/iqtree2 --alisim ./empiral_GTR+I+G_gap0.1_test/len256/taxa20/G_l_256_n_20_0_0_53 -m GTR{1.23709,1.54462,1.48953,11.62036,4.36244}+F{0.18104223857528431,0.2387252301091144,0.3120717894299754,0.268160741885626}+I{0.13412}+G{2.82074} -t ./empiral_GTR+I+G_gap0.1_test/len256/taxa20/G_l_256_n_20_0_0_53_raw.tre --length 256 --indel 0,0 --no-unaligned --seed 53
+Seed:    53 (Using SPRNG - Scalable Parallel Random Number Generator)
+Time:    Thu Jun 26 15:41:51 2025
+Kernel:  AVX+FMA - 1 threads (104 CPU cores detected)
+
+[Alignment Simulator] Executing
+ - Tree filepath: ./empiral_GTR+I+G_gap0.1_test/len256/taxa20/G_l_256_n_20_0_0_53_raw.tre
+ - Length of output sequences: 256
+ - Model: GTR{1.23709,1.54462,1.48953,11.62036,4.36244}+F{0.18104223857528431,0.2387252301091144,0.3120717894299754,0.268160741885626}+I{0.13412}+G{2.82074}
+ - Number of output datasets: 1
+SUBSTITUTION PROCESS
+--------------------
+
+Model of substitution: GTR+FU+I+G4
+
+Rate parameter R:
+
+  A-C: 1.237
+  A-G: 1.545
+  A-T: 1.490
+  C-G: 11.620
+  C-T: 4.362
+  G-T: 1.000
+
+State frequencies: (user-defined)
+
+  pi(A) = 0.181
+  pi(C) = 0.239
+  pi(G) = 0.312
+  pi(T) = 0.268
+
+Rate matrix Q:
+
+  A    -0.408     0.102     0.167     0.139
+  C    0.0777     -1.74      1.26     0.406
+  G     0.097     0.962     -1.15     0.093
+  T    0.0935     0.361     0.108    -0.563
+
+Model of rate heterogeneity: Invar+Gamma with 4 categories
+Proportion of invariable sites: 0.134
+Gamma shape alpha: 2.82
+
+ Category  Relative_rate  Proportion
+  0         0              0.134
+  1         0.433          0.216
+  2         0.833          0.216
+  3         1.25           0.216
+  4         2.1            0.216
+Relative rates are computed as MEAN of the portion of the Gamma distribution falling in the category.
+
+[Alignment Simulator] Done
+Simulation time: 0.012s
+Date and Time: Thu Jun 26 15:41:51 2025

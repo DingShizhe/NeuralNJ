@@ -1,0 +1,58 @@
+IQ-TREE multicore version 2.2.2.6 COVID-edition for Linux 64-bit built May 27 2023
+Developed by Bui Quang Minh, James Barbetti, Nguyen Lam Tung,
+Olga Chernomor, Heiko Schmidt, Dominik Schrempf, Michael Woodhams, Ly Trong Nhan.
+
+Host:    node15 (AVX512, FMA3, 250 GB RAM)
+Command: iqtree-2.2.2.6-Linux/bin/iqtree2 --alisim ./empiral_GTR+I+G_gap0.1_test/len256/taxa100/G_l_256_n_100_0_0_18 -m GTR{1.68016,10.89761,1.3307,1.6665,2.01258}+F{0.3112792728249675,0.2578157882953476,0.2071642860341199,0.22374065284556482}+I{0.05969}+G{1.01052} -t ./empiral_GTR+I+G_gap0.1_test/len256/taxa100/G_l_256_n_100_0_0_18_raw.tre --length 256 --indel 0,0 --no-unaligned --seed 18
+Seed:    18 (Using SPRNG - Scalable Parallel Random Number Generator)
+Time:    Thu Jun 26 15:42:11 2025
+Kernel:  AVX+FMA - 1 threads (104 CPU cores detected)
+
+[Alignment Simulator] Executing
+ - Tree filepath: ./empiral_GTR+I+G_gap0.1_test/len256/taxa100/G_l_256_n_100_0_0_18_raw.tre
+ - Length of output sequences: 256
+ - Model: GTR{1.68016,10.89761,1.3307,1.6665,2.01258}+F{0.3112792728249675,0.2578157882953476,0.2071642860341199,0.22374065284556482}+I{0.05969}+G{1.01052}
+ - Number of output datasets: 1
+SUBSTITUTION PROCESS
+--------------------
+
+Model of substitution: GTR+FU+I+G4
+
+Rate parameter R:
+
+  A-C: 1.680
+  A-G: 10.898
+  A-T: 1.331
+  C-G: 1.667
+  C-T: 2.013
+  G-T: 1.000
+
+State frequencies: (user-defined)
+
+  pi(A) = 0.311
+  pi(C) = 0.258
+  pi(G) = 0.207
+  pi(T) = 0.224
+
+Rate matrix Q:
+
+  A     -1.26     0.183     0.955     0.126
+  C     0.221    -0.558     0.146     0.191
+  G      1.44     0.182     -1.71    0.0947
+  T     0.175      0.22    0.0877    -0.482
+
+Model of rate heterogeneity: Invar+Gamma with 4 categories
+Proportion of invariable sites: 0.0597
+Gamma shape alpha: 1.01
+
+ Category  Relative_rate  Proportion
+  0         0              0.0597
+  1         0.148          0.235
+  2         0.51           0.235
+  3         1.07           0.235
+  4         2.53           0.235
+Relative rates are computed as MEAN of the portion of the Gamma distribution falling in the category.
+
+[Alignment Simulator] Done
+Simulation time: 0.017s
+Date and Time: Thu Jun 26 15:42:11 2025

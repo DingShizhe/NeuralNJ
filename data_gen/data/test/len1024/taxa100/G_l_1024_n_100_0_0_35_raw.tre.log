@@ -1,0 +1,58 @@
+IQ-TREE multicore version 2.2.2.6 COVID-edition for Linux 64-bit built May 27 2023
+Developed by Bui Quang Minh, James Barbetti, Nguyen Lam Tung,
+Olga Chernomor, Heiko Schmidt, Dominik Schrempf, Michael Woodhams, Ly Trong Nhan.
+
+Host:    node15 (AVX512, FMA3, 250 GB RAM)
+Command: iqtree-2.2.2.6-Linux/bin/iqtree2 --alisim ./empiral_GTR+I+G_gap0.1_test/len1024/taxa100/G_l_1024_n_100_0_0_35 -m GTR{1.42178,4.64518,0.3574,4.24855,5.02611}+F{0.311924327009254,0.20601669384185123,0.26803010506538244,0.2140288740835124}+I{0.14174}+G{0.49935} -t ./empiral_GTR+I+G_gap0.1_test/len1024/taxa100/G_l_1024_n_100_0_0_35_raw.tre --length 1024 --indel 0,0 --no-unaligned --seed 35
+Seed:    35 (Using SPRNG - Scalable Parallel Random Number Generator)
+Time:    Thu Jun 26 15:43:27 2025
+Kernel:  AVX+FMA - 1 threads (104 CPU cores detected)
+
+[Alignment Simulator] Executing
+ - Tree filepath: ./empiral_GTR+I+G_gap0.1_test/len1024/taxa100/G_l_1024_n_100_0_0_35_raw.tre
+ - Length of output sequences: 1024
+ - Model: GTR{1.42178,4.64518,0.3574,4.24855,5.02611}+F{0.311924327009254,0.20601669384185123,0.26803010506538244,0.2140288740835124}+I{0.14174}+G{0.49935}
+ - Number of output datasets: 1
+SUBSTITUTION PROCESS
+--------------------
+
+Model of substitution: GTR+FU+I+G4
+
+Rate parameter R:
+
+  A-C: 1.422
+  A-G: 4.645
+  A-T: 0.357
+  C-G: 4.249
+  C-T: 5.026
+  G-T: 1.000
+
+State frequencies: (user-defined)
+
+  pi(A) = 0.312
+  pi(C) = 0.206
+  pi(G) = 0.268
+  pi(T) = 0.214
+
+Rate matrix Q:
+
+  A    -0.794     0.144     0.612    0.0376
+  C     0.218     -1.31      0.56     0.529
+  G     0.712      0.43     -1.25     0.105
+  T    0.0548     0.509     0.132    -0.696
+
+Model of rate heterogeneity: Invar+Gamma with 4 categories
+Proportion of invariable sites: 0.142
+Gamma shape alpha: 0.499
+
+ Category  Relative_rate  Proportion
+  0         0              0.142
+  1         0.0388         0.215
+  2         0.293          0.215
+  3         0.955          0.215
+  4         3.37           0.215
+Relative rates are computed as MEAN of the portion of the Gamma distribution falling in the category.
+
+[Alignment Simulator] Done
+Simulation time: 0.021s
+Date and Time: Thu Jun 26 15:43:27 2025

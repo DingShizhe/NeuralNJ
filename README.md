@@ -34,7 +34,11 @@ cd data_gen/
 python generate.py
 ```
 
-**Note: Pre-generated datasets under the GTR+G model used in the paper are provided in the `./data_gen/data` directory for training, validation, and testing.**
+By default, `generate.py` utilizes ALISM with its default parameter settings for tree simulation. For empirical parameter-based simulations, refer to `generate_empirical.py`, which employs parameters derived from Naser-Khdour, S., Minh, B. Q., & Lanfear, R. (2021). *The influence of model violation on phylogenetic inference: a simulation study*. bioRxiv, 2021.09.22.461455. https://doi.org/10.1101/2021.09.22.461455. These parameters are used to configure ALISM for data generation.
+
+**Note:** NeuralNJ employs datasets generated via `generate_empirical.py` for both training and validation.
+
+**Note: Pre-generated datasets under the GTR+I+G model used in the paper are available on Zenodo: [https://doi.org/10.5281/zenodo.16912077](https://doi.org/10.5281/zenodo.16912077). Please download these datasets and place them in the `./data_gen/data` directory for training, validation, and testing.**
 
 ## Real Data
 
@@ -76,7 +80,7 @@ python finetune_rl_search.py --config ./config/finetune_reinforce_search_example
 
 The example configuration file `./config/finetune_reinforce_search_example.yaml` uses test cases located in the `examples` folder. Specifically, two cases in `examples/len1024taxa50`:
 
-- `G_l_1024_n_50_0.0_0.08_58.phy`: Used in the phylogenetic analysis case study in the paper
-- `G_l_1024_n_50_0.0_0.08_19.phy`: Used in the topology construction process analysis
+- `G_l_1024_n_50_0_0.03_73.phy`: Used in the phylogenetic analysis case study in the paper
+- `G_l_1024_n_50_0_0.02_71.phy`: Used in the topology construction process analysis
 
 Additionally, examples/cal_rf_distance.py provides a utility to calculate Robinson-Foulds distance between two phylogenetic trees. Use it with python cal_rf_distance.py --reftree <reference_tree_file> --inftree <inferred_tree_file> to evaluate topological differences between trees.
